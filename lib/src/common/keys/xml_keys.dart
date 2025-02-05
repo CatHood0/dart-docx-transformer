@@ -43,9 +43,10 @@ const String xmlHyperlinkNode = 'w:hyperlink'; // r:id="" w:history="number"
 const String xmlListNode = 'w:numPr'; // this is always an internal node from w:pPr
 const String xmlTabNode = 'w:tabs', xmlValueTabNode = 'w:tab'; // like tab indenting?
 const String xmlSpacingNode = 'w:spacing';
+const String xmlIndentNode = 'w:ind';
 const String xmlAlignmentNode = 'w:jc';
 const String xmlpStyleNode = 'w:pStyle'; // w:val="any_type_value"
-const String xmlDirectionalNode = '<w:bidi/>';
+const String xmlDirectionalNode = 'w:bidi';
 //
 // it can be inline and block level
 const String xmlBackgroundCharacterColorNode = 'w:shd'; // w:val="hex"

@@ -135,53 +135,30 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
             if (link != null) {
               inlineAttributes['link'] = link;
             }
-          }
-          if (textPartNode.localName == 'r') {
-            final drawNode = textPartNode.getElement('w:drawing');
-            // could be an image
-            if (drawNode != null) {
-              final embedNode = drawNode.findAllElements('a:blip').firstOrNull;
-              // if found this node, then means that this draw node
-              // is probably a image renderer
-              if (embedNode != null) {
-                // get the rsId of the image
-                final imageId = embedNode.getAttribute('r:embed')!; // => rIdx
-                // get the correct path from the document relations
-                final imagePath = documentRelations[imageId] as String?;
-                if (imagePath != null) {
-                  final effectivePath = imagePath.startsWith('word/') ? imagePath : 'word/$imagePath';
-                  // get the bytes of the images from the media files
-                  final bytes = rawMedia[effectivePath] as Uint8List;
-                  // transform the image to something that can be inserted in a Delta
-                  final url = await options.onDetectImage?.call(bytes, imagePath.replaceFirst(r'.*\/', ''));
-                  if (url != null) {
-                    assert(url is String, 'Embed Images only accept "String" type');
-                    delta.insert({'image': url});
-                    inlineAttributes.clear();
-                    continue;
-                  }
-                }
-              }
-            }
-          }
-          final inlineAttributesOfPart = textPartNode.getElement(xmlParagraphInlineAttsrNode);
-          bool hasInlineAttrs = inlineAttributesOfPart != null || commonInlineParagraphAttributes != null;
-          if (hasInlineAttrs) {
-            _buildInlineAttributes(
-              commonInlineParagraphAttributes,
-              inlineAttributesOfPart,
+            // hyperlink works as a wrapper of the nodes <w:r>
+            // that contains the text parts
+            //
+            // that's why we insert the text separated of the common implementation
+            _buildInsertionPart(
               inlineAttributes,
+              generalInlineAttributes,
+              commonInlineParagraphAttributes,
+              textPartNode.getElement('w:r')!,
+              delta,
+              documentRelations,
+              rawMedia,
             );
+            continue;
           }
-          // the node that contains the text
-          delta.insert(
-              textPartNode.getElement(xmlTextNode)?.innerText ?? '',
-              inlineAttributes.isEmpty
-                  ? generalInlineAttributes.isEmpty
-                      ? null
-                      : generalInlineAttributes
-                  : {...inlineAttributes, ...generalInlineAttributes});
-          inlineAttributes.clear();
+          _buildInsertionPart(
+            inlineAttributes,
+            generalInlineAttributes,
+            commonInlineParagraphAttributes,
+            textPartNode,
+            delta,
+            documentRelations,
+            rawMedia,
+          );
         }
       }
       //TODO: divide inline and block attributes building to another function
@@ -213,6 +190,63 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
     }
 
     return delta.isEmpty ? null : delta;
+  }
+
+  void _buildInsertionPart(
+    Map<String, dynamic> inlineAttributes,
+    Map<String, dynamic> generalInlineAttributes,
+    xml.XmlElement? commonInlineParagraphAttributes,
+    xml.XmlElement node,
+    Delta delta,
+    Map<String, dynamic> documentRelations,
+    Map<String, Object> rawMedia,
+  ) async {
+    if (node.localName == 'r') {
+      final drawNode = node.getElement('w:drawing') ?? node.findAllElements('w:drawing').firstOrNull;
+      // could be an image
+      if (drawNode != null) {
+        final embedNode = drawNode.findAllElements('a:blip').firstOrNull;
+        // if found this node, then means that this draw node
+        // is probably a image renderer
+        if (embedNode != null) {
+          // get the rsId of the image
+          final imageId = embedNode.getAttribute('r:embed')!; // => rIdx
+          // get the correct path from the document relations
+          final imagePath = documentRelations[imageId] as String?;
+          if (imagePath != null) {
+            final effectivePath = imagePath.startsWith('word/') ? imagePath : 'word/$imagePath';
+            // get the bytes of the images from the media files
+            final bytes = rawMedia[effectivePath] as Uint8List;
+            // transform the image to something that can be inserted in a Delta
+            final url = await options.onDetectImage?.call(bytes, imagePath.replaceFirst(r'.*\/', ''));
+            if (url != null) {
+              assert(url is String, 'Embed Images only accept "String" type');
+              delta.insert({'image': url});
+              inlineAttributes.clear();
+              return;
+            }
+          }
+        }
+      }
+    }
+    final inlineAttributesOfPart = node.getElement(xmlParagraphInlineAttsrNode);
+    bool hasInlineAttrs = inlineAttributesOfPart != null || commonInlineParagraphAttributes != null;
+    if (hasInlineAttrs) {
+      _buildInlineAttributes(
+        commonInlineParagraphAttributes,
+        inlineAttributesOfPart,
+        inlineAttributes,
+      );
+    }
+    // the node that contains the text
+    delta.insert(
+        node.getElement(xmlTextNode)?.innerText ?? '',
+        inlineAttributes.isEmpty
+            ? generalInlineAttributes.isEmpty
+                ? null
+                : generalInlineAttributes
+            : {...inlineAttributes, ...generalInlineAttributes});
+    inlineAttributes.clear();
   }
 
   void _buildInlineAttributes(

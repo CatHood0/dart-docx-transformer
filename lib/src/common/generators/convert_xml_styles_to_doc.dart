@@ -32,11 +32,36 @@ List<Styles> convertXmlStylesToStyles(
       final family = fontFamilyNode?.getAttribute('w:asciiTheme') ?? fontFamilyNode?.getElement('w:hAnsiTheme');
       final sizeNode = paragraphLineStyle.getElement(xmlSizeFontNode)?.getAttribute('w:val');
       final color = paragraphLineStyle.getElement(xmlCharacterColorNode)?.getAttribute('w:val');
+      final backgroundColor =
+          paragraphLineStyle.getElement(xmlBackgroundCharacterColorNode)?.getAttribute('w:val');
+      final italicNode = paragraphLineStyle.getElement(xmlItalicNode);
+      final underlineNode = paragraphLineStyle.getElement(xmlUnderlineNode);
+      final boldNode = paragraphLineStyle.getElement(xmlBoldNode);
+      final strikeNode = paragraphLineStyle.getElement(xmlStrikethroughNode);
+      final highlightColor = paragraphLineStyle.getElement(xmlHighlightCharacterColorNode)?.getAttribute('w:val');
+      if (italicNode != null) {
+        styleAttrs['inline']['italic'] = true;
+      }
+      if (underlineNode != null) {
+        styleAttrs['inline']['underline'] = true;
+      }
+      if (boldNode != null) {
+        styleAttrs['inline']['bold'] = true;
+      }
+      if (strikeNode != null) {
+        styleAttrs['inline']['strikethrough'] = true;
+      }
       if (family != null) {
         styleAttrs['inline']['font'] = family;
       }
       if (color != null) {
         styleAttrs['inline']['color'] = color;
+      }
+      if (highlightColor != null) {
+        styleAttrs['inline']['color'] = highlightColor;
+      }
+      if (backgroundColor != null) {
+        styleAttrs['inline']['background'] = backgroundColor;
       }
       if (sizeNode != null) {
         final int? possibleLevel = shouldParserSizeToHeading(sizeNode);
@@ -49,9 +74,18 @@ List<Styles> convertXmlStylesToStyles(
     }
     if (paragraphStyle != null) {
       var listNode = paragraphStyle.getElement(xmlListNode);
-      var indentNode = paragraphStyle.getElement(xmlTabNode);
+      var indentNode = paragraphStyle.getElement(xmlTabNode) ?? paragraphStyle.getElement(xmlIndentNode);
       var alignNode = paragraphStyle.getElement(xmlAlignmentNode);
       var spacingNode = paragraphStyle.getElement(xmlSpacingNode);
+
+      if (alignNode != null) {
+        final value = alignNode.getAttribute('w:val');
+        if (value != null) {
+          styleAttrs['block']['align'] = value;
+        }
+      }
+      if (indentNode != null) {}
+      if (spacingNode != null) {}
 
       if (listNode != null) {
         final codeNum = listNode.getElement(xmlListTypeNode)?.getAttribute('w:val');
