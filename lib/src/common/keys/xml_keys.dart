@@ -65,6 +65,7 @@ const String xmlSizeFontNode = 'w:sz'; // w:val="number"
 const String xmlUnderlineNode = 'w:u'; // w:val="single" = the basic underline used by Delta
 const String xmlStrikethroughNode = 'w:strike'; //
 const String xmlCharacterColorNode = 'w:color'; // w:val="hex"
+const String xmlHighlightCharacterColorNode = 'w:highlight'; // w:val="color" > red, blue, orange, etc
 // is an autoclosed node (<w:b/> or <w:bCs/>)
 const String xmlBoldNode = 'w:b', xmlBoldCsNode = 'w:bCs';
 // is an autoclosed node (<w:b/> or <w:bCs/>)

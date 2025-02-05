@@ -1,6 +1,7 @@
 import 'package:quill_delta_docx_parser/src/common/generators/convert_xml_styles_to_doc.dart';
 import 'package:quill_delta_docx_parser/src/common/generators/hexadecimal_generator.dart';
 import 'package:quill_delta_docx_parser/src/common/generators/styles_creator.dart';
+import 'package:quill_delta_docx_parser/src/util/predicate.dart';
 import 'package:xml/xml.dart' as xml;
 
 /// Represents the common styles used by the document
@@ -18,8 +19,18 @@ class DocumentStylesSheet {
     required this.paragraphStyleSheet,
   });
 
-  factory DocumentStylesSheet.fromStyles(xml.XmlDocument styleDoc) {
-    return DocumentStylesSheet(styles: convertXmlStylesToStyles(styleDoc), paragraphStyleSheet: null);
+  factory DocumentStylesSheet.fromStyles(xml.XmlDocument styleDoc, ParseSizeToHeadingCallback? shouldParseSizeToHeading) {
+    return DocumentStylesSheet(styles: convertXmlStylesToStyles(styleDoc, shouldParseSizeToHeading), paragraphStyleSheet: null);
+  }
+
+  Styles? getStyleById(String id) {
+    if(id.isEmpty) return null;
+    return styles.firstWhere((e) => e.id == id || e.styleId == id);
+  }
+
+  Styles? getStyleByName(String name) {
+    if(name.isEmpty) return null;
+    return styles.firstWhere((e) => e.styleName == name);
   }
 }
 
@@ -38,7 +49,7 @@ class SubStyles {
   });
   @override
   String toString() {
-    return 'Styles($propertyName, $value, $extraInfo)';
+    return 'SubStyles($propertyName, $value, $extraInfo)';
   }
 }
 
@@ -85,17 +96,20 @@ class Styles {
   final String styleName;
   final Object? defaultValue;
   final List<SubStyles> subStyles;
+  final Map<String, dynamic>? extra;
   Styles({
     required this.type,
     required this.styleId,
     required this.styleName,
     this.defaultValue,
     this.subStyles = const [],
-  }) : id = nanoid(8);
+    this.extra,
+    String? id,
+  }) : id = id ?? nanoid(8);
 
   @override
   String toString() {
-    return 'Styles($id, $type, $styleId, $defaultValue) => <$styleName> => [$subStyles]';
+    return 'Styles($id, ${type.isEmpty ? 'no-type' : type}, $styleId, ${defaultValue ?? extra}) => <$styleName> => [$subStyles]';
   }
 }
 

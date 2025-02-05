@@ -31,6 +31,7 @@ class DeltaParserOptions extends ParserOptions {
   /// from &lt;w:proofErr/&gt;
   final PredicateMisspell? buildDeltaFromMisspelledOps;
   final Future<Object?> Function(Uint8List bytes, String name)? onDetectImage;
+  final ParseSizeToHeadingCallback? shouldParserSizeToHeading;
 
   DeltaParserOptions({
     this.acceptFontValueWhen,
@@ -38,6 +39,7 @@ class DeltaParserOptions extends ParserOptions {
     this.transformSizeValueTo,
     this.buildDeltaFromMisspelledOps,
     this.onDetectImage,
+    this.shouldParserSizeToHeading,
   });
 }
 

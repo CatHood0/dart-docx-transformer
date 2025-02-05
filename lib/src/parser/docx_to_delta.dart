@@ -68,13 +68,17 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
     // cache ops
     // correspond => {rId: link}
     final Map<String, Object> documentRelations = _buildRelations(documentRels) ?? {};
-    final DocumentStylesSheet docStyles = DocumentStylesSheet.fromStyles(styles!);
+    final DocumentStylesSheet docStyles = DocumentStylesSheet.fromStyles(
+      styles!,
+      options.shouldParserSizeToHeading,
+    );
 
     final paragraphNodes = document.findAllElements(xmlParagraphNode);
 
     for (final paragraph in paragraphNodes) {
       Map<String, dynamic> blockAttributes = {};
       Map<String, dynamic> inlineAttributes = {};
+      Map<String, dynamic> generalInlineAttributes = {};
       // common parents nodes
       // level 1 priority
       final paragraphLevelAttributesNode = paragraph.getElement(xmlParagraphBlockAttrsNode);
@@ -89,7 +93,18 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
       var spacingNode = paragraphLevelAttributesNode?.getElement(xmlSpacingNode);
       // should ref to a style into styles.xml
       var paragraphStyle = paragraphLevelAttributesNode?.getElement(xmlpStyleNode);
-      final textPartNodes = paragraph.children;
+      final Styles? style = docStyles.getStyleById(paragraphStyle?.getAttribute('w:val') ?? '');
+      if (style != null) {
+        if (style.extra?['block'] != null) {
+          blockAttributes.addAll({...style.extra?['block']});
+        }
+        if (style.extra?['inline'] != null) {
+          generalInlineAttributes.addAll({...style.extra?['inline']});
+        }
+      }
+
+      final textPartNodes = [...paragraph.children]..removeWhere(
+          (node) => node is xml.XmlElement && (node.localName == 'pPr' || node.localName == 'proofErr'));
       // if the textPartNodes are empty we will need to ignore the paragraph
       // because it is only a new line
       if (textPartNodes.isEmpty) {
@@ -159,8 +174,13 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
             );
           }
           // the node that contains the text
-          delta.insert(textPartNode.getElement(xmlTextNode)?.innerText ?? '',
-              inlineAttributes.isEmpty ? null : inlineAttributes);
+          delta.insert(
+              textPartNode.getElement(xmlTextNode)?.innerText ?? '',
+              inlineAttributes.isEmpty
+                  ? generalInlineAttributes.isEmpty
+                      ? null
+                      : generalInlineAttributes
+                  : {...inlineAttributes, ...generalInlineAttributes});
           inlineAttributes.clear();
         }
       }
@@ -169,6 +189,9 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
       final containsIndent = indentNode != null;
       final containsAlignment = alignNode != null;
       final containsSpacing = spacingNode != null;
+      if (containsIndent) {}
+      if (containsAlignment) {}
+      if (containsSpacing) {}
       if (isList) {
         final codeNum = listNode.getElement(xmlListTypeNode)!.getAttribute('w:val');
         final numberIndentLevel = listNode.getElement(xmlListIndentLevelNode)!.getAttribute('w:val');
@@ -266,7 +289,7 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
     if (color != null) {
       inlineAttributes['color'] = color;
     }
-    if (color != null) {
+    if (backgroundColor != null) {
       inlineAttributes['background'] = backgroundColor;
     }
   }
