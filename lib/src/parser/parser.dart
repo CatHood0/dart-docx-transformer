@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:quill_delta_docx_parser/quill_delta_docx_parser.dart';
 import 'package:quill_delta_docx_parser/src/parser/parser_options.dart';
@@ -29,7 +30,7 @@ class DeltaParserOptions extends ParserOptions {
   /// founded at this point, contains misspelled attribute
   /// from &lt;w:proofErr/&gt;
   final PredicateMisspell? buildDeltaFromMisspelledOps;
-  final Object? Function(Object value)? onDetectImage;
+  final Future<Object?> Function(Uint8List bytes, String name)? onDetectImage;
 
   DeltaParserOptions({
     this.acceptFontValueWhen,

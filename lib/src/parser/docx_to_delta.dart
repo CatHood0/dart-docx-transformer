@@ -1,15 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:archive/archive.dart';
 import 'package:dart_quill_delta/dart_quill_delta.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 import 'package:quill_delta_docx_parser/quill_delta_docx_parser.dart';
 import 'package:quill_delta_docx_parser/src/parser/parser.dart';
 import 'package:xml/xml.dart' as xml;
 
-class DocxToDelta extends Parser<Uint8List, Delta?, DeltaParserOptions> {
+class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions> {
   ZipDecoder? _zipDecoder;
   DocxToDelta({
     required super.data,
@@ -17,7 +14,7 @@ class DocxToDelta extends Parser<Uint8List, Delta?, DeltaParserOptions> {
   });
 
   @override
-  Delta? build() {
+  Future<Delta?>? build() async {
     Delta delta = Delta();
     _zipDecoder ??= ZipDecoder();
 
@@ -40,23 +37,25 @@ class DocxToDelta extends Parser<Uint8List, Delta?, DeltaParserOptions> {
     //
     // probably we want to create a cache from all the relations to avoid searching always
     xml.XmlDocument? documentRels;
-    Directory? media;
+    Map<String, Object> rawMedia = {};
 
     // search the necessary files
     for (final file in archive) {
-      if (file.isFile && file.name == stylesXmlFilePath) {
+      if (file.name == stylesXmlFilePath) {
         final fileContent = utf8.decode(file.content);
         styles = xml.XmlDocument.parse(fileContent);
       }
-      if (file.isFile && file.name == documentXmlRelsFilePath) {
+      if (file.name == documentXmlRelsFilePath) {
         final fileContent = utf8.decode(file.content);
         documentRels = xml.XmlDocument.parse(fileContent);
       }
-      if (file.isDirectory && file.name == 'word/media') {
+      if (file.name.startsWith('word/media/')) {
         final w = file.getContent();
-        // TODO: implement media search?
+        if (w != null) {
+          rawMedia[file.name] = w.toUint8List();
+        }
       }
-      if (file.isFile && file.name == documentFilePath) {
+      if (file.name == documentFilePath) {
         final fileContent = utf8.decode(file.content);
         document = xml.XmlDocument.parse(fileContent);
       }
@@ -70,8 +69,6 @@ class DocxToDelta extends Parser<Uint8List, Delta?, DeltaParserOptions> {
     // correspond => {rId: link}
     final Map<String, Object> documentRelations = _buildRelations(documentRels) ?? {};
     final DocumentStylesSheet docStyles = DocumentStylesSheet.fromStyles(styles!);
-    // correspond => {(key || path): Object}
-    final Map<String, Object> docMedia = {};
 
     final paragraphNodes = document.findAllElements(xmlParagraphNode);
 
@@ -124,24 +121,37 @@ class DocxToDelta extends Parser<Uint8List, Delta?, DeltaParserOptions> {
               inlineAttributes['link'] = link;
             }
           }
-          // could be an image
-          if (textPartNode.localName == 'drawing' ||
-              textPartNode.localName == 'r' && textPartNode.getElement('pic:pic') != null) {
-            final embedNode = textPartNode.getElement('a:blip');
-            if (embedNode != null) {
-              final imageId = embedNode.getAttribute('embed')!; // => rIdx
-              final imagePath = documentRelations[imageId] as String?;
-              // if the image path is into the relations, then
-              // we can search into the media
-              if (imagePath != null) {
-                final bytes = docMedia[imagePath];
-                // finish image implementation
+          if (textPartNode.localName == 'r') {
+            final drawNode = textPartNode.getElement('w:drawing');
+            // could be an image
+            if (drawNode != null) {
+              final embedNode = drawNode.findAllElements('a:blip').firstOrNull;
+              // if found this node, then means that this draw node
+              // is probably a image renderer
+              if (embedNode != null) {
+                // get the rsId of the image
+                final imageId = embedNode.getAttribute('r:embed')!; // => rIdx
+                // get the correct path from the document relations
+                final imagePath = documentRelations[imageId] as String?;
+                if (imagePath != null) {
+                  final effectivePath = imagePath.startsWith('word/') ? imagePath : 'word/$imagePath';
+                  // get the bytes of the images from the media files
+                  final bytes = rawMedia[effectivePath] as Uint8List;
+                  // transform the image to something that can be inserted in a Delta
+                  final url = await options.onDetectImage?.call(bytes, imagePath.replaceFirst(r'.*\/', ''));
+                  if (url != null) {
+                    assert(url is String, 'Embed Images only accept "String" type');
+                    delta.insert({'image': url});
+                    inlineAttributes.clear();
+                    continue;
+                  }
+                }
               }
             }
           }
           final inlineAttributesOfPart = textPartNode.getElement(xmlParagraphInlineAttsrNode);
-          bool hasNoInlineAttrs = inlineAttributesOfPart == null && commonInlineParagraphAttributes == null;
-          if (hasNoInlineAttrs) {
+          bool hasInlineAttrs = inlineAttributesOfPart != null || commonInlineParagraphAttributes != null;
+          if (hasInlineAttrs) {
             _buildInlineAttributes(
               commonInlineParagraphAttributes,
               inlineAttributesOfPart,
@@ -151,6 +161,7 @@ class DocxToDelta extends Parser<Uint8List, Delta?, DeltaParserOptions> {
           // the node that contains the text
           delta.insert(textPartNode.getElement(xmlTextNode)?.innerText ?? '',
               inlineAttributes.isEmpty ? null : inlineAttributes);
+          inlineAttributes.clear();
         }
       }
       //TODO: divide inline and block attributes building to another function
