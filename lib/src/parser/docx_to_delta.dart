@@ -76,32 +76,36 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
     final paragraphNodes = document.findAllElements(xmlParagraphNode);
 
     for (final paragraph in paragraphNodes) {
-      Map<String, dynamic> blockAttributes = {};
-      Map<String, dynamic> inlineAttributes = {};
-      Map<String, dynamic> generalInlineAttributes = {};
       // common parents nodes
-      // level 1 priority
       final paragraphLevelAttributesNode = paragraph.getElement(xmlParagraphBlockAttrsNode);
       // <w:rPr> node could be into <w:pPr> since this last one correspond to the common attributes
       // applied to the entire paragraph (<w:p>)
       final commonInlineParagraphAttributes =
           paragraphLevelAttributesNode?.getElement(xmlParagraphInlineAttsrNode);
+      Map<String, dynamic> blockAttributes = {};
+      // these are the attributes that probably could be applied to a part of the text
+      Map<String, dynamic> inlineAttributes = {};
+      // these are the attributes that will be applied to the entire characters of the paragraph
+      Map<String, dynamic> generalInlineAttributes = {};
+      // Getting the w:pStyle, we can the styleId that is stored into styles.xml
+      //
+      // then, we already have the styles parsed to a human readable class, we can get the specific
+      // style by the id passed
+      var paragraphStyle = paragraphLevelAttributesNode?.getElement(xmlpStyleNode);
+      final Styles? style = docStyles.getStyleById(paragraphStyle?.getAttribute('w:val') ?? '');
+      if (style != null) {
+        if (style.block != null) {
+          blockAttributes.addAll({...?style.block});
+        }
+        if (style.inline != null) {
+          generalInlineAttributes.addAll({...?style.inline});
+        }
+      }
       // block attributes
       var listNode = paragraphLevelAttributesNode?.getElement(xmlListNode);
       var indentNode = paragraphLevelAttributesNode?.getElement(xmlTabNode);
       var alignNode = paragraphLevelAttributesNode?.getElement(xmlAlignmentNode);
       var spacingNode = paragraphLevelAttributesNode?.getElement(xmlSpacingNode);
-      // should ref to a style into styles.xml
-      var paragraphStyle = paragraphLevelAttributesNode?.getElement(xmlpStyleNode);
-      final Styles? style = docStyles.getStyleById(paragraphStyle?.getAttribute('w:val') ?? '');
-      if (style != null) {
-        if (style.extra?['block'] != null) {
-          blockAttributes.addAll({...style.extra?['block']});
-        }
-        if (style.extra?['inline'] != null) {
-          generalInlineAttributes.addAll({...style.extra?['inline']});
-        }
-      }
 
       final textPartNodes = [...paragraph.children]..removeWhere(
           (node) => node is xml.XmlElement && (node.localName == 'pPr' || node.localName == 'proofErr'));
@@ -112,38 +116,43 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
         delta.insert('\n');
         continue;
       }
-      // the nodes that contains every part of the text
-      //
-      // this is, because docx divides the content by preserved whitespaces
+      // Docx nodes divides the content by "preserved whitespaces"
       // and styles attributes
       //
-      // you can see this, like, separating text by inline attrs in delta
+      // then, we will need to verify the node type and the text
+      // inside to avoid add unexpected chars
+      //
+      // # This is how Word Editor creates its lines (using Delta format) 
       //
       // [
-      //  {"insert": "This is "},
+      //  {"insert": "This"}, 
+      //  {"insert": " "}, 
+      //  {"insert": "is"},
+      //  {"insert": " "},
+      //  {"insert": "a"},
+      //  {"insert": " "},
       //  {"insert": "bold text", {"bold": true}},
-      //  {"insert": " That works as an example"}
+      //  {"insert": " "},
       // ]
-      //
       for (final textPartNode in textPartNodes) {
         if (textPartNode is xml.XmlElement) {
           // ignore misspell items
           if (textPartNode.localName == xmlProofErrorNode) continue;
+          // hyperlink works as a wrapper of the nodes <w:r>
+          // that contains the text parts
+          //
+          // that's why we insert the text separated of the common implementation
           if (textPartNode.localName == 'hyperlink') {
             final rId = textPartNode.getAttribute('r:id');
             final link = documentRelations[rId] as String?;
             if (link != null) {
               inlineAttributes['link'] = link;
             }
-            // hyperlink works as a wrapper of the nodes <w:r>
-            // that contains the text parts
-            //
-            // that's why we insert the text separated of the common implementation
             _buildInsertionPart(
               inlineAttributes,
               generalInlineAttributes,
               commonInlineParagraphAttributes,
-              textPartNode.getElement('w:r')!,
+              textPartNode.getElement(xmlTextPartNode)!,
               delta,
               documentRelations,
               rawMedia,
@@ -218,7 +227,7 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
             // get the bytes of the images from the media files
             final bytes = rawMedia[effectivePath] as Uint8List;
             // transform the image to something that can be inserted in a Delta
-            final url = await options.onDetectImage?.call(bytes, imagePath.replaceFirst(r'.*\/', ''));
+            final url = await options.onDetectImage.call(bytes, imagePath.replaceFirst(r'.*\/', ''));
             if (url != null) {
               assert(url is String, 'Embed Images only accept "String" type');
               delta.insert({'image': url});

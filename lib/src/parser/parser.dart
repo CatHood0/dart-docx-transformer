@@ -30,16 +30,16 @@ class DeltaParserOptions extends ParserOptions {
   /// founded at this point, contains misspelled attribute
   /// from &lt;w:proofErr/&gt;
   final PredicateMisspell? buildDeltaFromMisspelledOps;
-  final Future<Object?> Function(Uint8List bytes, String name)? onDetectImage;
+  final Future<Object?> Function(Uint8List bytes, String name) onDetectImage;
   final ParseSizeToHeadingCallback? shouldParserSizeToHeading;
 
   DeltaParserOptions({
+    required this.onDetectImage,
+    required this.shouldParserSizeToHeading,
     this.acceptFontValueWhen,
     this.acceptSizeValueWhen,
     this.transformSizeValueTo,
     this.buildDeltaFromMisspelledOps,
-    this.onDetectImage,
-    this.shouldParserSizeToHeading,
   });
 }
 

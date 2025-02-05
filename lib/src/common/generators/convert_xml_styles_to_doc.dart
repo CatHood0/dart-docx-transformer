@@ -25,8 +25,8 @@ List<Styles> convertXmlStylesToStyles(
     final subStyles = <SubStyles>[];
     final attributes = <String, dynamic>{};
     final styleAttrs = <String, dynamic>{};
-    styleAttrs['inline'] = {};
-    styleAttrs['block'] = {};
+    styleAttrs['inline'] = <String, dynamic>{};
+    styleAttrs['block'] = <String, dynamic>{};
     if (paragraphLineStyle != null) {
       final fontFamilyNode = paragraphLineStyle.getElement(xmlFontsNode);
       final family = fontFamilyNode?.getAttribute('w:asciiTheme') ?? fontFamilyNode?.getElement('w:hAnsiTheme');
@@ -124,7 +124,9 @@ List<Styles> convertXmlStylesToStyles(
         styleId: styleId,
         styleName: styleName,
         subStyles: subStyles,
-        extra: styleAttrs.isEmpty ? null : styleAttrs,
+        block: styleAttrs['block'] as Map<String, dynamic>,
+        inline: styleAttrs['inline'] as Map<String, dynamic>,
+        extra: null,
       ),
     );
   }

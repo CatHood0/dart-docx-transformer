@@ -19,18 +19,26 @@ class DocumentStylesSheet {
     required this.paragraphStyleSheet,
   });
 
-  factory DocumentStylesSheet.fromStyles(xml.XmlDocument styleDoc, ParseSizeToHeadingCallback? shouldParseSizeToHeading) {
-    return DocumentStylesSheet(styles: convertXmlStylesToStyles(styleDoc, shouldParseSizeToHeading), paragraphStyleSheet: null);
+  factory DocumentStylesSheet.fromStyles(
+      xml.XmlDocument styleDoc, ParseSizeToHeadingCallback? shouldParseSizeToHeading) {
+    return DocumentStylesSheet(
+      styles: convertXmlStylesToStyles(styleDoc, shouldParseSizeToHeading),
+      paragraphStyleSheet: null,
+    );
   }
 
   Styles? getStyleById(String id) {
-    if(id.isEmpty) return null;
-    return styles.firstWhere((e) => e.id == id || e.styleId == id);
+    if (id.isEmpty) return null;
+    return styles.firstWhere(
+      (e) => e.id == id || e.styleId == id,
+    );
   }
 
   Styles? getStyleByName(String name) {
-    if(name.isEmpty) return null;
-    return styles.firstWhere((e) => e.styleName == name);
+    if (name.isEmpty) return null;
+    return styles.firstWhere(
+      (e) => e.styleName == name,
+    );
   }
 }
 
@@ -61,9 +69,17 @@ class SubStyles {
 /// Assume that we build a style like this
 /// ```dart
 /// final style = Styles(
-///   styleId: 'Título 1'
+///   styleId: '624'
 ///   type: 'paragraph',
 ///   styleName: 'Header 1'
+///   block: {
+///     'header': 1,
+///     'align': center,
+///   },
+///   inline: {
+///     'font': 'Times new roman',
+///     'size': 24,
+///   }, 
 ///   subStyles: [
 ///     SubStyles(
 ///       propertyName: 'keepLines',
@@ -79,8 +95,16 @@ class SubStyles {
 /// ```
 ///
 /// ```xml
-/// <w:style type="paragraph" w:styleId="Título 1">
+/// <w:style type="paragraph" w:styleId="624">
 ///   <w:name w:val="Header 1"
+///   <w:pPr>
+///     <w:jc w:val="center"/> 
+///   </w:pPr>
+///   </w:rPr>
+///     <w:rFonts w:asciiTheme="Times new roman"/>
+///     <w:size w:val="24"/>
+///     <w:sizeCs w:val="24"/>
+///   </w:rPr>
 ///   <w:keepLines />
 ///   <w:spacing w:before="360" w:after="180" />
 /// </w:style>
@@ -89,13 +113,19 @@ class Styles {
   // the internal identifier of this style
   late String id;
   final String type;
+  /// Represents the id that will be used by the XmlNodes
+  /// of Word to applies any existent style in style.xml
   final String styleId;
-
   /// This is the name of the style that
   /// will be showed by the Word Editor
   final String styleName;
   final Object? defaultValue;
   final List<SubStyles> subStyles;
+  /// correspond to the <w:pPr>
+  final Map<String, dynamic>? block;
+  /// correspond to the <w:rPr>
+  final Map<String, dynamic>? inline;
+  /// any extra data that need to be here
   final Map<String, dynamic>? extra;
   Styles({
     required this.type,
@@ -103,13 +133,15 @@ class Styles {
     required this.styleName,
     this.defaultValue,
     this.subStyles = const [],
+    this.block,
+    this.inline,
     this.extra,
     String? id,
   }) : id = id ?? nanoid(8);
 
   @override
   String toString() {
-    return 'Styles($id, ${type.isEmpty ? 'no-type' : type}, $styleId, ${defaultValue ?? extra}) => <$styleName> => [$subStyles]';
+    return 'Styles($id, ${type.isEmpty ? 'no-type' : type}, $styleId, ${defaultValue ?? extra}, block: $block, inline: $inline) => Name: $styleName => [$subStyles]';
   }
 }
 
