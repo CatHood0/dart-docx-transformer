@@ -24,17 +24,3 @@ class DeltaToDocx extends Parser<Delta, File?, DocxParserOptions> {
     return null;
   }
 }
-
-class DocxParserOptions extends ParserOptions {
-  final String fileName;
-  final String path;
-  final Directory? directoryWrapper;
-  final DocumentProperties documentProperties;
-
-  DocxParserOptions({
-    required this.fileName,
-    required this.path,
-    required this.directoryWrapper,
-    required this.documentProperties,
-  });
-}

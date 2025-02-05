@@ -1,12 +1,15 @@
+import 'package:quill_delta_docx_parser/src/common/generators/convert_xml_styles_to_doc.dart';
 import 'package:quill_delta_docx_parser/src/common/generators/hexadecimal_generator.dart';
 import 'package:quill_delta_docx_parser/src/common/generators/styles_creator.dart';
+import 'package:xml/xml.dart' as xml;
 
 /// Represents the common styles used by the document
 ///
 /// Note: **all the styles into this class will be writted into [styles.xml]**
 class DocumentStylesSheet {
   /// These are the default styles applied to the paragraphs
-  final ParagraphStyleSheet paragraphStyleSheet;
+  final ParagraphStyleSheet? paragraphStyleSheet;
+
   /// These are the global styles
   final List<Styles> styles;
 
@@ -14,20 +17,29 @@ class DocumentStylesSheet {
     required this.styles,
     required this.paragraphStyleSheet,
   });
+
+  factory DocumentStylesSheet.fromStyles(xml.XmlDocument styleDoc) {
+    return DocumentStylesSheet(styles: convertXmlStylesToStyles(styleDoc), paragraphStyleSheet: null);
+  }
 }
 
 class SubStyles {
   // correspond to the node localname
   final String propertyName;
   final Object? value;
+
   /// Represents the attributes of the [Node] style
-  /// will be builded as a [XmlAttribute] if not null 
+  /// will be builded as a [XmlAttribute] if not null
   final Map<String, dynamic>? extraInfo;
   SubStyles({
     required this.propertyName,
     required this.value,
     required this.extraInfo,
   });
+  @override
+  String toString() {
+    return 'Styles($propertyName, $value, $extraInfo)';
+  }
 }
 
 /// Represent the styles of the document
@@ -35,11 +47,11 @@ class SubStyles {
 ///
 /// Example:
 ///
-/// Assume that we build a style like this 
+/// Assume that we build a style like this
 /// ```dart
 /// final style = Styles(
 ///   styleId: 'Título 1'
-///   type: 'paragraph', 
+///   type: 'paragraph',
 ///   styleName: 'Header 1'
 ///   subStyles: [
 ///     SubStyles(
@@ -48,10 +60,10 @@ class SubStyles {
 ///     ),
 ///     SubStyles(
 ///       propertyName: 'spacing',
-///       value: null, 
+///       value: null,
 ///       extraInfo: {'before': 360, 'after': 180},
 ///     ),
-///   ], 
+///   ],
 /// );
 /// ```
 ///
@@ -67,6 +79,7 @@ class Styles {
   late String id;
   final String type;
   final String styleId;
+
   /// This is the name of the style that
   /// will be showed by the Word Editor
   final String styleName;
@@ -79,6 +92,11 @@ class Styles {
     this.defaultValue,
     this.subStyles = const [],
   }) : id = nanoid(8);
+
+  @override
+  String toString() {
+    return 'Styles($id, $type, $styleId, $defaultValue) => <$styleName> => [$subStyles]';
+  }
 }
 
 // the exceptions where the common StyleSheet wont be applied
