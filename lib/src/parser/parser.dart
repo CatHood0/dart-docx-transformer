@@ -32,10 +32,12 @@ class DeltaParserOptions extends ParserOptions {
   final PredicateMisspell? buildDeltaFromMisspelledOps;
   final Future<Object?> Function(Uint8List bytes, String name) onDetectImage;
   final ParseSizeToHeadingCallback? shouldParserSizeToHeading;
+  final ParseXmlSpacingCallback? parseXmlSpacing;
 
   DeltaParserOptions({
     required this.onDetectImage,
     required this.shouldParserSizeToHeading,
+    this.parseXmlSpacing,
     this.acceptFontValueWhen,
     this.acceptSizeValueWhen,
     this.transformSizeValueTo,

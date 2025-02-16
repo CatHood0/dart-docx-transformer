@@ -1,59 +1,146 @@
 # Images
 
-<w:p w14:paraId="3FBB740B" w14:textId="11147ACE" w:rsidR="005715AA" w:rsidRDefault="005715AA" w:rsidP="00C1259F">
-   <w:r>
-    <w:rPr>
-     <w:noProof/>
-    </w:rPr>
+En `.docx`, las imágenes se representan dentro de `<w:drawing>` y `<wp:inline>` o `<wp:anchor>`, y pueden personalizarse con varios atributos. Aquí están los más usados:  
+
+## 📌 **1. Alineación (`alignment`)**  
+Se configura en `<w:pPr>` usando `<w:jc>`.  
+
+```xml
+<w:p>
+  <w:pPr>
+    <w:jc w:val="center"/> <!-- Alineación centrada -->
+  </w:pPr>
+  <w:r>
     <w:drawing>
-     <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1
-" wp14:anchorId="59B7F039" wp14:editId="2C37B325">
-      <wp:simplePos x="0" y="0"/>
-      <wp:positionH relativeFrom="column">
-       <wp:posOffset>0</wp:posOffset>
-      </wp:positionH>
-      <wp:positionV relativeFrom="paragraph">
-       <wp:posOffset>318770</wp:posOffset>
-      </wp:positionV>
-      <wp:extent cx="5400040" cy="2370455"/>
-      <wp:effectExtent l="0" t="0" r="0" b="0"/>
-      <wp:wrapTopAndBottom/>
-      <wp:docPr id="1934698990" name="Imagen 1"/>
-      <wp:cNvGraphicFramePr>
-       <a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/>
-      </wp:cNvGraphicFramePr>
-      <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
-       <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
-        <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
-         <pic:nvPicPr>
-          <pic:cNvPr id="1934698990" name="Imagen 1934698990"/>
-          <pic:cNvPicPr/>
-         </pic:nvPicPr>
-         <pic:blipFill>
-          <a:blip r:embed="rId5" cstate="print">
-           <a:extLst>
-            <a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}">
-             <a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/>
-            </a:ext>
-           </a:extLst>
-          </a:blip>
-          <a:stretch>
-           <a:fillRect/>
-          </a:stretch>
-         </pic:blipFill>
-         <pic:spPr>
-          <a:xfrm>
-           <a:off x="0" y="0"/>
-           <a:ext cx="5400040" cy="2370455"/>
-          </a:xfrm>
-          <a:prstGeom prst="rect">
-           <a:avLst/>
-          </a:prstGeom>
-         </pic:spPr>
-        </pic:pic>
-       </a:graphicData>
-      </a:graphic>
-     </wp:anchor>
+      <!-- Aquí va la imagen -->
     </w:drawing>
-   </w:r>
-  </w:p>
+  </w:r>
+</w:p>
+```
+
+### **Delta**  
+```json
+{ "insert": { "image": "imagen.png" }, "attributes": { "align": "center" } }
+```
+
+---
+
+## 📌 **2. Tamaño (`width`, `height`)**  
+Se define dentro de `<a:ext>` en la unidad EMU (1 cm ≈ 360000 EMU).  
+
+```xml
+<wp:extent cx="3048000" cy="2286000"/> <!-- 8.5 cm x 6.35 cm -->
+```
+
+### **Delta**  
+```json
+{ "insert": { "image": "imagen.png" }, "attributes": { "width": 85, "height": 63.5 } }
+```
+
+---
+
+## 📌 **3. Posición (Ajuste de Texto / `wrap`)**  
+Se usa `<wp:inline>` (en línea con el texto) o `<wp:anchor>` (posicionado en la página).  
+
+### **Texto envuelto (float left)**  
+```xml
+<wp:anchor>
+  <wp:positionH relativeFrom="column">
+    <wp:posOffset>0</wp:posOffset>
+  </wp:positionH>
+  <wp:positionV relativeFrom="paragraph">
+    <wp:posOffset>0</wp:posOffset>
+  </wp:positionV>
+</wp:anchor>
+```
+
+### **Delta**  
+```json
+{ "insert": { "image": "imagen.png" }, "attributes": { "float": "left" } }
+```
+
+---
+
+## 📌 **4. Márgenes (`margin-top`, `margin-bottom`, etc.)**  
+Se pueden controlar con `<wp:positionV>` y `<wp:positionH>`.  
+
+```xml
+<wp:positionH relativeFrom="column">
+  <wp:posOffset>50000</wp:posOffset> <!-- 1.4 mm -->
+</wp:positionH>
+<wp:positionV relativeFrom="paragraph">
+  <wp:posOffset>100000</wp:posOffset> <!-- 2.8 mm -->
+</wp:positionV>
+```
+
+### **Delta**  
+```json
+{ "insert": { "image": "imagen.png" }, "attributes": { "margin-top": 2.8, "margin-left": 1.4 } }
+```
+
+---
+
+## 📌 **5. Bordes (`border`)**  
+Los bordes de imágenes en `.docx` se aplican con `<a:ln>` dentro de `<a:graphic>`.  
+
+```xml
+<a:ln w="12700"> <!-- Borde de 0.35 mm -->
+  <a:solidFill>
+    <a:srgbClr val="FF0000"/> <!-- Rojo -->
+  </a:solidFill>
+</a:ln>
+```
+
+### **Delta**  
+```json
+{ "insert": { "image": "imagen.png" }, "attributes": { "border": { "width": 0.35, "color": "#FF0000" } } }
+```
+
+---
+
+## 📌 **6. Opacidad (`opacity`)**  
+Se maneja con `<a:alpha>`, donde `100000` es opacidad total (100%).  
+
+```xml
+<a:alpha val="50000"/> <!-- 50% de opacidad -->
+```
+
+### **Delta**  
+```json
+{ "insert": { "image": "imagen.png" }, "attributes": { "opacity": 50 } }
+```
+
+---
+
+## 📌 **7. Redondeo de Bordes (`border-radius`)**  
+En `.docx`, se usa `<a:roundRect>` en imágenes dentro de `<pic:spPr>`.  
+
+```xml
+<pic:spPr>
+  <a:xfrm>
+    <a:roundRect/>
+  </a:xfrm>
+</pic:spPr>
+```
+
+### **Delta**  
+```json
+{ "insert": { "image": "imagen.png" }, "attributes": { "border-radius": 10 } }
+```
+
+---
+
+## 📌 **Resumen de atributos más usados**
+| **Atributo Quill Delta** | **DOCX XML** |
+|-----------------|------------------|
+| `"align": "center"` | `<w:jc w:val="center"/>` |
+| `"width": 85, "height": 63.5` | `<wp:extent cx="3048000" cy="2286000"/>` |
+| `"float": "left"` | `<wp:anchor> ... </wp:anchor>` |
+| `"margin-top": 2.8` | `<wp:positionV posOffset="100000"/>` |
+| `"border": { "width": 0.35, "color": "#FF0000" }` | `<a:ln w="12700">` |
+| `"opacity": 50` | `<a:alpha val="50000"/>` |
+| `"border-radius": 10` | `<a:roundRect/>` |
+
+---
+
+### 🚀 **¿Necesitas ayuda implementándolo en tu código? ¿En qué lenguaje estás escribiendo el parser?**

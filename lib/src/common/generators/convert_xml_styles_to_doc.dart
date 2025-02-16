@@ -1,44 +1,55 @@
-import 'package:flutter/foundation.dart';
 import 'package:quill_delta_docx_parser/quill_delta_docx_parser.dart';
 import 'package:quill_delta_docx_parser/src/common/default/default_size_to_heading.dart';
 import 'package:quill_delta_docx_parser/src/util/predicate.dart';
 import 'package:xml/xml.dart' as xml;
 
+const _maxLeftValue = 5000;
+
+final _defaultSpacings = Map<double, double>.unmodifiable(<double, double>{
+  12.0: 1.0,
+  18.0: 1.5,
+  24: 2.0,
+});
+
 List<Styles> convertXmlStylesToStyles(
-    xml.XmlDocument styles, ParseSizeToHeadingCallback? shouldParserSizeToHeading) {
-  final result = <Styles>[];
-  shouldParserSizeToHeading ??= defaultSizeToHeading;
+  xml.XmlDocument styles,
+  ConverterFromXmlContext context,
+) {
+  final List<Styles> result = <Styles>[];
+  context.shouldParserSizeToHeading ??= defaultSizeToHeading;
 
-  final rawStyles = styles.findAllElements('w:style');
+  final Iterable<xml.XmlElement> rawStyles = styles.findAllElements('w:style');
   if (rawStyles.isEmpty) return result;
-  for (var styleElement in rawStyles) {
-    final type = styleElement.getAttribute('w:type') ?? '';
-    final styleId = styleElement.getAttribute('w:styleId') ?? '';
-    final nameElement = styleElement.getElement('w:name');
-    final styleName = nameElement?.getAttribute('w:val') ?? '';
-    final paragraphStyle = styleElement.getElement('w:pPr');
-    final paragraphLineStyle = styleElement.getElement('w:rPr');
-    if (styleId == '624') {
-      debugPrint(styleElement.toXmlString(pretty: true));
-    }
+  for (xml.XmlElement styleElement in rawStyles) {
+    final String type = styleElement.getAttribute('w:type') ?? '';
+    final String styleId = styleElement.getAttribute('w:styleId') ?? '';
+    final String relatedWith = styleElement.getElement('w:link')?.getAttribute('w:val') ?? '';
+    final String baseOn = styleElement.getElement('w:basedOn')?.getAttribute('w:val') ?? '';
+    final String rsId = styleElement.getElement('w:rsId')?.getAttribute('w:val') ?? '';
+    final xml.XmlElement? nameElement = styleElement.getElement('w:name');
+    final String styleName = nameElement?.getAttribute('w:val') ?? '';
+    final xml.XmlElement? paragraphStyle = styleElement.getElement('w:pPr');
+    final xml.XmlElement? paragraphLineStyle = styleElement.getElement('w:rPr');
 
-    final subStyles = <SubStyles>[];
-    final attributes = <String, dynamic>{};
-    final styleAttrs = <String, dynamic>{};
+    final List<SubStyles> subStyles = <SubStyles>[];
+    final Map<String, dynamic> attributes = <String, dynamic>{};
+    final Map<String, dynamic> styleAttrs = <String, dynamic>{};
     styleAttrs['inline'] = <String, dynamic>{};
     styleAttrs['block'] = <String, dynamic>{};
     if (paragraphLineStyle != null) {
-      final fontFamilyNode = paragraphLineStyle.getElement(xmlFontsNode);
-      final family = fontFamilyNode?.getAttribute('w:asciiTheme') ?? fontFamilyNode?.getElement('w:hAnsiTheme');
-      final sizeNode = paragraphLineStyle.getElement(xmlSizeFontNode)?.getAttribute('w:val');
-      final color = paragraphLineStyle.getElement(xmlCharacterColorNode)?.getAttribute('w:val');
-      final backgroundColor =
+      final xml.XmlElement? fontFamilyNode = paragraphLineStyle.getElement(xmlFontsNode);
+      final Object? family =
+          fontFamilyNode?.getAttribute('w:asciiTheme') ?? fontFamilyNode?.getElement('w:hAnsiTheme');
+      final String? sizeNode = paragraphLineStyle.getElement(xmlSizeFontNode)?.getAttribute('w:val');
+      final String? color = paragraphLineStyle.getElement(xmlCharacterColorNode)?.getAttribute('w:val');
+      final String? backgroundColor =
           paragraphLineStyle.getElement(xmlBackgroundCharacterColorNode)?.getAttribute('w:val');
-      final italicNode = paragraphLineStyle.getElement(xmlItalicNode);
-      final underlineNode = paragraphLineStyle.getElement(xmlUnderlineNode);
-      final boldNode = paragraphLineStyle.getElement(xmlBoldNode);
-      final strikeNode = paragraphLineStyle.getElement(xmlStrikethroughNode);
-      final highlightColor = paragraphLineStyle.getElement(xmlHighlightCharacterColorNode)?.getAttribute('w:val');
+      final xml.XmlElement? italicNode = paragraphLineStyle.getElement(xmlItalicNode);
+      final xml.XmlElement? underlineNode = paragraphLineStyle.getElement(xmlUnderlineNode);
+      final xml.XmlElement? boldNode = paragraphLineStyle.getElement(xmlBoldNode);
+      final xml.XmlElement? strikeNode = paragraphLineStyle.getElement(xmlStrikethroughNode);
+      final String? highlightColor =
+          paragraphLineStyle.getElement(xmlHighlightCharacterColorNode)?.getAttribute('w:val');
       if (italicNode != null) {
         styleAttrs['inline']['italic'] = true;
       }
@@ -64,47 +75,88 @@ List<Styles> convertXmlStylesToStyles(
         styleAttrs['inline']['background'] = backgroundColor;
       }
       if (sizeNode != null) {
-        final int? possibleLevel = shouldParserSizeToHeading(sizeNode);
+        final int? possibleLevel = context.shouldParserSizeToHeading!(sizeNode);
         if (possibleLevel != null) {
-          styleAttrs['block']['header'] = possibleLevel;
+          styleAttrs['block']['header'] = '$possibleLevel';
         } else {
           styleAttrs['inline']['size'] = sizeNode;
         }
       }
     }
     if (paragraphStyle != null) {
-      var listNode = paragraphStyle.getElement(xmlListNode);
-      var indentNode = paragraphStyle.getElement(xmlTabNode) ?? paragraphStyle.getElement(xmlIndentNode);
-      var alignNode = paragraphStyle.getElement(xmlAlignmentNode);
-      var spacingNode = paragraphStyle.getElement(xmlSpacingNode);
-
-      if (alignNode != null) {
-        final value = alignNode.getAttribute('w:val');
-        if (value != null) {
-          styleAttrs['block']['align'] = value;
-        }
-      }
-      if (indentNode != null) {}
-      if (spacingNode != null) {}
+      xml.XmlElement? listNode = paragraphStyle.getElement(xmlListNode);
+      xml.XmlElement? indentNode = paragraphStyle.getElement(xmlIndentNode);
+      xml.XmlElement? tabIndentNode = paragraphStyle.getElement(xmlTabNode);
+      xml.XmlElement? alignNode = paragraphStyle.getElement(xmlAlignmentNode);
+      xml.XmlElement? spacingNode = paragraphStyle.getElement(xmlSpacingNode);
 
       if (listNode != null) {
-        final codeNum = listNode.getElement(xmlListTypeNode)?.getAttribute('w:val');
-        final numberIndentLevel = listNode.getElement(xmlListIndentLevelNode)!.getAttribute('w:val');
+        final String? codeNum = listNode.getElement(xmlListTypeNode)?.getAttribute('w:val');
+        final String? numberIndentLevel = listNode.getElement(xmlListIndentLevelNode)!.getAttribute('w:val');
         if (codeNum != null && (codeNum == '2' || codeNum == '3')) {
           styleAttrs['block']?['list'] = codeNum == '2' ? 'bullet' : 'ordered';
         }
         if (numberIndentLevel != null) {
-          final indent = int.tryParse(numberIndentLevel);
+          final int? indent = int.tryParse(numberIndentLevel);
           if (indent != null && indent > 0) {
             styleAttrs['block']?['indent'] = indent;
           }
         }
       }
-    }
-    for (var node in styleElement.children.whereType<xml.XmlElement>()) {
-      if (node.name.local == 'name' || node.localName == 'pPr' || node.localName == 'rPr') continue;
 
-      for (var attr in node.attributes) {
+      if (alignNode != null) {
+        final String? value = alignNode.getAttribute('w:val');
+        if (value != null) {
+          styleAttrs['block']['align'] = value;
+        }
+      }
+
+      if (indentNode != null) {
+        final rawIndentValue = indentNode.getAttribute('w:left');
+        // if contains a value, then we can calculate something
+        if (rawIndentValue != null) {
+          final indentValueNum = double.tryParse(rawIndentValue);
+          final effectiveIndentValue = ((indentValueNum ?? 0) / _maxLeftValue).floor();
+          if (effectiveIndentValue > 0) {
+            styleAttrs['block']['indent'] = effectiveIndentValue;
+          }
+        }
+      }
+      if (tabIndentNode != null) {}
+      if (spacingNode != null) {
+        final String? sizeAttr = paragraphLineStyle?.getElement(xmlSizeFontNode)?.getAttribute('w:val');
+        if (sizeAttr != null) {
+          final int sizeNumber = int.tryParse(sizeAttr)!;
+          final int? afterSpacing = int.tryParse(spacingNode.getAttribute('w:after') ?? '');
+          if (afterSpacing != null && afterSpacing > 0) {
+            final double effectiveSizePoint = sizeNumber / 2;
+            final double effectiveSpacing = afterSpacing / 20;
+            final double spacing = (effectiveSpacing / effectiveSizePoint).floorToDouble();
+            if (spacing > 0.0) {
+              styleAttrs['block']?['line-height'] = spacing;
+            }
+          }
+        } else {
+          final int? afterSpacing = int.tryParse(spacingNode.getAttribute('w:after') ?? '');
+          if (afterSpacing != null && afterSpacing > 0) {
+            final double effectiveSpacing = afterSpacing / 20;
+            final double? spacing = _defaultSpacings[effectiveSpacing];
+            if (spacing != null) {
+              styleAttrs['block']?['line-height'] = spacing;
+            }
+          }
+        }
+      }
+    }
+    for (xml.XmlElement node in styleElement.children.whereType<xml.XmlElement>()) {
+      if (node.name.local == 'name' ||
+          node.localName == 'pPr' ||
+          node.localName == 'rPr' ||
+          node.localName == 'link' ||
+          node.localName == 'uiPriority' ||
+          node.localName == 'baseOn') continue;
+
+      for (xml.XmlAttribute attr in node.attributes) {
         attributes[attr.name.local] = attr.value;
       }
 
@@ -120,7 +172,10 @@ List<Styles> convertXmlStylesToStyles(
 
     result.add(
       Styles(
+        id: rsId.isEmpty ? null : rsId,
         type: type,
+        relatedWith: relatedWith,
+        baseOn: baseOn,
         styleId: styleId,
         styleName: styleName,
         subStyles: subStyles,
@@ -131,4 +186,14 @@ List<Styles> convertXmlStylesToStyles(
     );
   }
   return result;
+}
+
+class ConverterFromXmlContext {
+  ParseSizeToHeadingCallback? shouldParserSizeToHeading;
+  ParseXmlSpacingCallback? parseXmlSpacing;
+
+  ConverterFromXmlContext({
+    this.shouldParserSizeToHeading,
+    this.parseXmlSpacing,
+  });
 }

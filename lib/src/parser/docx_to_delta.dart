@@ -3,6 +3,7 @@ import 'package:archive/archive.dart';
 import 'package:dart_quill_delta/dart_quill_delta.dart';
 import 'package:flutter/foundation.dart';
 import 'package:quill_delta_docx_parser/quill_delta_docx_parser.dart';
+import 'package:quill_delta_docx_parser/src/common/generators/convert_xml_styles_to_doc.dart';
 import 'package:quill_delta_docx_parser/src/parser/parser.dart';
 import 'package:xml/xml.dart' as xml;
 
@@ -70,17 +71,19 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
     final Map<String, Object> documentRelations = _buildRelations(documentRels) ?? {};
     final DocumentStylesSheet docStyles = DocumentStylesSheet.fromStyles(
       styles!,
-      options.shouldParserSizeToHeading,
+      ConverterFromXmlContext(
+        shouldParserSizeToHeading: options.shouldParserSizeToHeading,
+      ),
     );
 
-    final paragraphNodes = document.findAllElements(xmlParagraphNode);
+    final Iterable<xml.XmlElement> paragraphNodes = document.findAllElements(xmlParagraphNode);
 
-    for (final paragraph in paragraphNodes) {
+    for (final xml.XmlElement paragraph in paragraphNodes) {
       // common parents nodes
-      final paragraphLevelAttributesNode = paragraph.getElement(xmlParagraphBlockAttrsNode);
+      final xml.XmlElement? paragraphLevelAttributesNode = paragraph.getElement(xmlParagraphBlockAttrsNode);
       // <w:rPr> node could be into <w:pPr> since this last one correspond to the common attributes
       // applied to the entire paragraph (<w:p>)
-      final commonInlineParagraphAttributes =
+      final xml.XmlElement? commonInlineParagraphAttributes =
           paragraphLevelAttributesNode?.getElement(xmlParagraphInlineAttsrNode);
       Map<String, dynamic> blockAttributes = {};
       // these are the attributes that probably could be applied to a part of the text
@@ -91,9 +94,13 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
       //
       // then, we already have the styles parsed to a human readable class, we can get the specific
       // style by the id passed
-      var paragraphStyle = paragraphLevelAttributesNode?.getElement(xmlpStyleNode);
-      final Styles? style = docStyles.getStyleById(paragraphStyle?.getAttribute('w:val') ?? '');
+      xml.XmlElement? paragraphStyle = paragraphLevelAttributesNode?.getElement(xmlpStyleNode);
+      final Styles? style = docStyles.getStyleById(paragraphStyle?.getAttribute('w:val') ?? '') ??
+          docStyles.getStyleById(
+            paragraph.getAttribute('w:rsId') ?? '',
+          );
       if (style != null) {
+        //final Iterable<Iterable<Styles>> relatedStyles = docStyles.getDeepRelationships(style);
         if (style.block != null) {
           blockAttributes.addAll({...?style.block});
         }
@@ -102,13 +109,12 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
         }
       }
       // block attributes
-      var listNode = paragraphLevelAttributesNode?.getElement(xmlListNode);
-      var indentNode = paragraphLevelAttributesNode?.getElement(xmlTabNode);
-      var alignNode = paragraphLevelAttributesNode?.getElement(xmlAlignmentNode);
-      var spacingNode = paragraphLevelAttributesNode?.getElement(xmlSpacingNode);
+      xml.XmlElement? listNode = paragraphLevelAttributesNode?.getElement(xmlListNode);
+      xml.XmlElement? indentNode = paragraphLevelAttributesNode?.getElement(xmlTabNode);
+      xml.XmlElement? alignNode = paragraphLevelAttributesNode?.getElement(xmlAlignmentNode);
 
-      final textPartNodes = [...paragraph.children]..removeWhere(
-          (node) => node is xml.XmlElement && (node.localName == 'pPr' || node.localName == 'proofErr'));
+      final List<xml.XmlNode> textPartNodes = [...paragraph.children]..removeWhere((xml.XmlNode node) =>
+          node is xml.XmlElement && (node.localName == 'pPr' || node.localName == 'proofErr'));
       // if the textPartNodes are empty we will need to ignore the paragraph
       // because it is only a new line
       if (textPartNodes.isEmpty) {
@@ -122,11 +128,11 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
       // then, we will need to verify the node type and the text
       // inside to avoid add unexpected chars
       //
-      // # This is how Word Editor creates its lines (using Delta format) 
+      // # This is how Word Editor creates its lines (using Delta format)
       //
       // [
-      //  {"insert": "This"}, 
-      //  {"insert": " "}, 
+      //  {"insert": "This"},
+      //  {"insert": " "},
       //  {"insert": "is"},
       //  {"insert": " "},
       //  {"insert": "a"},
@@ -134,50 +140,55 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
       //  {"insert": "bold text", {"bold": true}},
       //  {"insert": " "},
       // ]
-      for (final textPartNode in textPartNodes) {
-        if (textPartNode is xml.XmlElement) {
-          // ignore misspell items
-          if (textPartNode.localName == xmlProofErrorNode) continue;
-          // hyperlink works as a wrapper of the nodes <w:r>
-          // that contains the text parts
-          //
-          // that's why we insert the text separated of the common implementation
-          if (textPartNode.localName == 'hyperlink') {
-            final rId = textPartNode.getAttribute('r:id');
-            final link = documentRelations[rId] as String?;
-            if (link != null) {
-              inlineAttributes['link'] = link;
-            }
-            _buildInsertionPart(
-              inlineAttributes,
-              generalInlineAttributes,
-              commonInlineParagraphAttributes,
-              textPartNode.getElement(xmlTextPartNode)!,
-              delta,
-              documentRelations,
-              rawMedia,
-            );
-            continue;
+      for (final xml.XmlElement textPartNode in textPartNodes.whereType<xml.XmlElement>()) {
+        // ignore misspell items
+        if (textPartNode.localName == xmlProofErrorNode) continue;
+        // hyperlink works as a wrapper of the nodes <w:r>
+        // that contains the text parts
+        //
+        // that's why we insert the text separated of the common implementation
+        if (textPartNode.localName == 'hyperlink') {
+          final rId = textPartNode.getAttribute('r:id');
+          final link = documentRelations[rId] as String?;
+          if (link != null) {
+            inlineAttributes['link'] = link;
           }
           _buildInsertionPart(
             inlineAttributes,
             generalInlineAttributes,
             commonInlineParagraphAttributes,
-            textPartNode,
+            textPartNode.getElement(xmlTextPartNode)!,
             delta,
             documentRelations,
             rawMedia,
           );
+          continue;
         }
+        _buildInsertionPart(
+          inlineAttributes,
+          generalInlineAttributes,
+          commonInlineParagraphAttributes,
+          textPartNode,
+          delta,
+          documentRelations,
+          rawMedia,
+        );
       }
       //TODO: divide inline and block attributes building to another function
-      final isList = listNode != null;
-      final containsIndent = indentNode != null;
-      final containsAlignment = alignNode != null;
-      final containsSpacing = spacingNode != null;
+      final bool isList = listNode != null;
+      final bool containsIndent = indentNode != null;
+      final bool containsAlignment = alignNode != null;
       if (containsIndent) {}
-      if (containsAlignment) {}
-      if (containsSpacing) {}
+      if (containsAlignment) {
+        final align = alignNode.getAttribute('w:val');
+        if (align != null) {
+          assert(
+            align == 'left' || align == 'right' || align == 'center' || align == 'justify',
+            'Quill Delta only supports: right, left, center and justify alignments',
+          );
+          blockAttributes['align'] = align;
+        }
+      }
       if (isList) {
         final codeNum = listNode.getElement(xmlListTypeNode)!.getAttribute('w:val');
         final numberIndentLevel = listNode.getElement(xmlListIndentLevelNode)!.getAttribute('w:val');
