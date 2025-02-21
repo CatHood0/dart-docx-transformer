@@ -1,4 +1,4 @@
-/// Represents the editor properties that are always 
+/// Represents the editor properties that are always
 /// showed like: number of lines, paragraphs, characters, etc
 class EditorProperties {
   final int numberOfRevisions;
@@ -25,4 +25,3 @@ class EditorProperties {
     this.appVersion = '16.0000',
   }) : assert(numberOfRevisions > 0, 'revisions cannot be less than 1');
 }
-

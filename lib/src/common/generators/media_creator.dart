@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_quill_delta/dart_quill_delta.dart';
-import 'package:quill_delta_docx_parser/src/common/file_creator.dart';
+import 'package:docx_transformer/src/common/file_creator.dart';
 
 typedef FileName = String;
 typedef FileExtension = String;
@@ -29,7 +29,8 @@ Map<String, FileCreator> mediaCreator(
         'file name cannot be empty or contains slash or invert slash "/|\\"');
     assert(fileProps.$3.isNotEmpty && !fileProps.$3.contains('/'),
         'file extension name cannot be empty or contains slash or invert slash "/|\\"');
-    final mediaName = '${fileProps.$2}${lastNumberGenerated + 1}${fileProps.$3}';
+    final mediaName =
+        '${fileProps.$2}${lastNumberGenerated + 1}${fileProps.$3}';
     // register the new extension type if needed
     onDetectExtension(fileProps.$3);
     final fileCreator = FileCreator(
@@ -41,7 +42,8 @@ Map<String, FileCreator> mediaCreator(
     if (namesRegistered.containsKey(mediaName)) {
       final nameFallback = onCatchExistentRegister?.call(fileProps.$2);
       if (nameFallback == null) {
-        throw StateError('$mediaName is already registered into the media registers and cannot be accepted');
+        throw StateError(
+            '$mediaName is already registered into the media registers and cannot be accepted');
       }
       assert(nameFallback.isNotEmpty && !nameFallback.contains('/'),
           'file name cannot be empty or contains slash or invert slash "/|\\"');

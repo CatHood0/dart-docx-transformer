@@ -1,3 +1,1 @@
-abstract class ParserOptions {
-  
-}
+abstract class ParserOptions {}

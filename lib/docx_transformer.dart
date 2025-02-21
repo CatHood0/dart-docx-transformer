@@ -1,7 +1,7 @@
 library;
 
-export 'src/parser/delta_to_docx.dart';
-export 'src/parser/docx_to_delta.dart';
+export 'src/parser/delta/delta_to_docx.dart';
+export 'src/parser/delta/docx_to_delta.dart';
 export 'src/parser/parser_options.dart';
 export 'src/common/document/document_styles.dart';
 export 'src/common/document/editor_properties.dart';

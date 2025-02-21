@@ -1,5 +1,4 @@
-import 'package:quill_delta_docx_parser/src/common/default/default_document_styles.dart';
-import 'package:quill_delta_docx_parser/src/common/document/document_styles.dart';
+import 'package:docx_transformer/docx_transformer.dart';
 
 /// Represents the common properties to be filled
 /// in the document. E.g: subject, owner, modified date,

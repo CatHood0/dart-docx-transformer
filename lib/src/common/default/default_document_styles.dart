@@ -1,5 +1,5 @@
-import 'package:quill_delta_docx_parser/src/common/document/document_styles.dart';
-import 'package:quill_delta_docx_parser/src/common/generators/styles_creator.dart';
+import 'package:docx_transformer/src/common/document/document_styles.dart';
+import 'package:docx_transformer/src/common/generators/styles_creator.dart';
 
 final DocumentStylesSheet defaultDocumentStyles = DocumentStylesSheet(
   styles: [

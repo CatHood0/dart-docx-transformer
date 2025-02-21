@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:quill_delta_docx_parser/quill_delta_docx_parser.dart';
-import 'package:quill_delta_docx_parser/src/parser/parser_options.dart';
-import 'package:quill_delta_docx_parser/src/util/predicate.dart';
+import 'package:docx_transformer/docx_transformer.dart';
+import 'package:docx_transformer/src/util/predicate.dart';
 
 abstract class Parser<T, R, O extends ParserOptions> {
   final T data;

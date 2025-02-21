@@ -1,5 +1,5 @@
-import 'package:quill_delta_docx_parser/src/common/document/document_properties.dart';
-import 'package:quill_delta_docx_parser/src/common/document/editor_properties.dart';
+import 'package:docx_transformer/src/common/document/document_properties.dart';
+import 'package:docx_transformer/src/common/document/editor_properties.dart';
 
 /// Correspond to the start of the file document.xml
 final String rootBodyXmlEntryElement = '''
@@ -16,12 +16,14 @@ final String rootRelsXmlElement =
     '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml" /><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml" /><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml" /></Relationships>''';
 
 /// Correspond to file docProps/core.xml
-String coreDocPropsXmlElement(DocumentProperties properties, EditorProperties editorProps) =>
+String coreDocPropsXmlElement(
+        DocumentProperties properties, EditorProperties editorProps) =>
     '''<?xml version="1.0" encoding="${properties.encoding}" standalone="${properties.standalone}"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${properties.title}</dc:title><dc:subject>${properties.subject}</dc:subject><dc:creator>${properties.owner}</dc:creator><cp:keywords>${properties.keywords}</cp:keywords><dc:description>${properties.description}</dc:description><cp:lastModifiedBy>${properties.modifiedBy}</cp:lastModifiedBy><cp:revision>${editorProps.numberOfRevisions}</cp:revision><dcterms:created xsi:type="dcterms:W3CDTF">${properties.createdAt.toUtc()}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${properties.time.toUtc()}</dcterms:modified></cp:coreProperties>
 ''';
 
 /// Correspond to file docProps/app.xml
-String appDocPropsXmlElement(DocumentProperties docProps, EditorProperties properties) =>
+String appDocPropsXmlElement(
+        DocumentProperties docProps, EditorProperties properties) =>
     '''<?xml version="1.0" encoding="${docProps.encoding}" standalone="${docProps.standalone}"?>
 <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Template>${properties.template}</Template><TotalTime>1</TotalTime><Pages>${properties.pages}</Pages><Words>${properties.words}</Words><Characters>${properties.characters}</Characters><Application>Microsoft Office Word</Application><DocSecurity>${properties.docSecurity}</DocSecurity><Lines>${properties.lines}</Lines><Paragraphs>${properties.paragraphs}</Paragraphs><ScaleCrop>false</ScaleCrop><Company></Company><LinksUpToDate>false</LinksUpToDate><CharactersWithSpaces>${properties.charactersWithSpaces}</CharactersWithSpaces><SharedDoc>false</SharedDoc><HyperlinksChanged>false</HyperlinksChanged><AppVersion>${properties.appVersion}</AppVersion></Properties>''';
 
@@ -32,7 +34,8 @@ String appDocPropsXmlElement(DocumentProperties docProps, EditorProperties prope
 /// (relationships creates a way to references multimedia from word/media to the document.xml
 /// and this file is related with word/media/[files] that adds all files with its binaries)
 // Note: <Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image1.jpeg" />
-String documentXmlRelsElement((List<String>, int lastNumber) Function(String lastId) nodes) =>
+String documentXmlRelsElement(
+        (List<String>, int lastNumber) Function(String lastId) nodes) =>
     '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml" /><Relationship
     Id="rId7" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml" /><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml" /><Relationship Id="rId1"
     Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml" />${nodes('4').$1}<Relationship Id="rId6" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable" Target="fontTable.xml" /><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings" Target="webSettings.xml" /></Relationships>

@@ -1,6 +1,6 @@
-import 'package:quill_delta_docx_parser/src/common/generators/convert_xml_styles_to_doc.dart';
-import 'package:quill_delta_docx_parser/src/common/generators/hexadecimal_generator.dart';
-import 'package:quill_delta_docx_parser/src/common/generators/styles_creator.dart';
+import 'package:docx_transformer/src/common/generators/convert_xml_styles_to_doc.dart';
+import 'package:docx_transformer/src/common/generators/hexadecimal_generator.dart';
+import 'package:docx_transformer/src/common/generators/styles_creator.dart';
 import 'package:xml/xml.dart' as xml;
 
 /// Represents the common styles used by the document
@@ -43,7 +43,7 @@ class DocumentStylesSheet {
   Iterable<Iterable<Styles>> getDeepRelationships(Styles style) {
     if (style.relatedWith.isEmpty) return [];
     return styles.map((e) {
-      if(e.relatedWith.isEmpty) return [e];
+      if (e.relatedWith.isEmpty) return [e];
       return [e, ...?getRelationships(e)];
     });
   }
@@ -142,7 +142,8 @@ class Styles {
   /// The id of the another Style that has a
   /// relation with this
   final String relatedWith;
-  /// 
+
+  ///
   final String baseOn;
 
   /// This is the name of the style that
@@ -176,25 +177,25 @@ class Styles {
   @override
   String toString() {
     return 'Styles($id, '
-    '${type.isEmpty ? 'no-type' : type}, '
-    '$styleId, ${defaultValue ?? extra}, '
-    'block: $block, '
-    'inline: $inline, '
-    'related: $relatedWith, '
-    'base on: $baseOn), '
-    'Style name: $styleName => [$subStyles]';
+        '${type.isEmpty ? 'no-type' : type}, '
+        '$styleId, ${defaultValue ?? extra}, '
+        'block: $block, '
+        'inline: $inline, '
+        'related: $relatedWith, '
+        'base on: $baseOn), '
+        'Style name: $styleName => [$subStyles]';
   }
 
   String toPrettyString() {
     return 'Styles => $id\n'
-    'Type: ${type.isEmpty ? 'no-type' : type},\n'
-    'StyleId: $styleId, ${defaultValue ?? extra},\n'
-    'Block: $block, \n'
-    'inline: $inline,\n'
-    'related with: $relatedWith, \n'
-    'based on: $baseOn, \n'
-    'Style name: $styleName\n'
-    'SubStyles: ${subStyles.join('\n')}\n';
+        'Type: ${type.isEmpty ? 'no-type' : type},\n'
+        'StyleId: $styleId, ${defaultValue ?? extra},\n'
+        'Block: $block, \n'
+        'inline: $inline,\n'
+        'related with: $relatedWith, \n'
+        'based on: $baseOn, \n'
+        'Style name: $styleName\n'
+        'SubStyles: ${subStyles.join('\n')}\n';
   }
 }
 

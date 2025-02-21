@@ -26,7 +26,8 @@ const String xmlParagraphBlockAttrsNode = 'w:pPr';
 /// other XmlNodes
 ///
 /// place type can be: "spellStart" or "spellEnd"
-const String xmlProofErrorNode = 'w:proofErr', xmlProofErrorPlaceTypeNode = 'w:type';
+const String xmlProofErrorNode = 'w:proofErr',
+    xmlProofErrorPlaceTypeNode = 'w:type';
 // inline
 /// <w:rPr> is always an internal node from <w:pPr> or <w:sdtPr>
 /// _Note: when a part of text, has a different value from the common of the paragrah_
@@ -40,8 +41,10 @@ const String xmlTextNode = 'w:t', xmlTextPartNode = 'w:r';
 // seems it works as paragraph node
 const String xmlHyperlinkNode = 'w:hyperlink'; // r:id="" w:history="number"
 // block attrs (<w:pPr> or <w:sdtContent>)
-const String xmlListNode = 'w:numPr'; // this is always an internal node from w:pPr
-const String xmlTabNode = 'w:tabs', xmlValueTabNode = 'w:tab'; // like tab indenting?
+const String xmlListNode =
+    'w:numPr'; // this is always an internal node from w:pPr
+const String xmlTabNode = 'w:tabs',
+    xmlValueTabNode = 'w:tab'; // like tab indenting?
 const String xmlSpacingNode = 'w:spacing';
 const String xmlIndentNode = 'w:ind';
 const String xmlAlignmentNode = 'w:jc';
@@ -63,10 +66,12 @@ const String xmlListTypeNode = 'w:numId'; // w.val="number"
 const String xmlStyleNode = 'w:rStyle'; // w:val="any_type_value"
 const String xmlFontsNode = 'w:rFonts'; // w:ascci="" w:hAnsi="" w:cs=""
 const String xmlSizeFontNode = 'w:sz'; // w:val="number"
-const String xmlUnderlineNode = 'w:u'; // w:val="single" = the basic underline used by Delta
+const String xmlUnderlineNode =
+    'w:u'; // w:val="single" = the basic underline used by Delta
 const String xmlStrikethroughNode = 'w:strike'; //
 const String xmlCharacterColorNode = 'w:color'; // w:val="hex"
-const String xmlHighlightCharacterColorNode = 'w:highlight'; // w:val="color" > red, blue, orange, etc
+const String xmlHighlightCharacterColorNode =
+    'w:highlight'; // w:val="color" > red, blue, orange, etc
 // is an autoclosed node (<w:b/> or <w:bCs/>)
 const String xmlBoldNode = 'w:b', xmlBoldCsNode = 'w:bCs';
 // is an autoclosed node (<w:b/> or <w:bCs/>)

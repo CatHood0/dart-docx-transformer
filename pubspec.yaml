@@ -1,5 +1,5 @@
-name: quill_delta_docx_parser
-description: "A new Flutter package project."
+name: docx_transformer 
+description: "Transform content across popular formats to/from Word documents while preserving formatting, and the richness"
 version: 0.0.1
 homepage:
 
