@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:dart_quill_delta/dart_quill_delta.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quill_delta_docx_parser/src/common/generators/hexadecimal_generator.dart';
