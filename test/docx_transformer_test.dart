@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:docx_transformer/src/common/generators/hexadecimal_generator.dart';
-import 'package:docx_transformer/src/parser/delta/docx_to_delta.dart';
+import 'package:docx_transformer/src/parser/delta/delta_from_docx.dart';
 import 'package:docx_transformer/src/parser/parser.dart';
 
 void main() {
