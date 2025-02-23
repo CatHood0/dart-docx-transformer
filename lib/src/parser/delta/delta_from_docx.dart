@@ -278,7 +278,7 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
         inlineAttributes.isEmpty
             ? paragraphInlineAttributes.isEmpty
                 ? null
-                :paragraphInlineAttributes 
+                : paragraphInlineAttributes
             : <String, dynamic>{...inlineAttributes, ...paragraphInlineAttributes});
     inlineAttributes.clear();
   }
@@ -468,6 +468,20 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
             final String? typeBorder = child.getAttribute('w:val');
             if (typeBorder == 'single') {
               blockAttributes['blockquote'] = true;
+              break;
+            }
+          }
+          // if the other border sides are defined
+          // we need to avoid adding blockquote since
+          // does not match with the style that we expect
+          if (child.localName == 'right' ||
+              child.localName == 'top' ||
+              child.localName == 'bottom' ||
+              child.localName == 'between') {
+            final String? typeBorder = child.getAttribute('w:val');
+            if (typeBorder != 'none') {
+              blockAttributes.remove('blockquote');
+              break;
             }
           }
         }
