@@ -18,12 +18,20 @@ abstract class Parser<T, R, O extends ParserOptions> {
 class DeltaParserOptions extends ParserOptions {
   final Predicate<String>? acceptFontValueWhen;
   final Predicate<String>? acceptSizeValueWhen;
+  final Predicate<int>? acceptSpacingValueWhen;
 
   /// a way to build a custom size from Word
   /// to a know value for Quill Delta
   ///
   /// like: "28" can be converted to "huge"
   final String Function(String)? transformSizeValueTo;
+
+  /// a way to build a custom size from Word
+  /// to a know value for Quill Delta
+  ///
+  /// like: "28" can be converted to "1"
+  /// that will be saved as "header": 1
+  final int Function(String)? transformSizeToHeading;
 
   /// This is a callback that decides if the operations
   /// founded at this point, contains misspelled attribute
@@ -36,6 +44,8 @@ class DeltaParserOptions extends ParserOptions {
   DeltaParserOptions({
     required this.onDetectImage,
     required this.shouldParserSizeToHeading,
+    this.transformSizeToHeading,
+    this.acceptSpacingValueWhen,
     this.parseXmlSpacing,
     this.acceptFontValueWhen,
     this.acceptSizeValueWhen,

@@ -1,0 +1,4 @@
+enum TabDirection {
+  ltr,
+  rtl,
+}

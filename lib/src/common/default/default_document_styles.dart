@@ -3,7 +3,7 @@ import 'package:docx_transformer/src/common/generators/styles_creator.dart';
 
 final DocumentStylesSheet defaultDocumentStyles = DocumentStylesSheet(
   styles: [
-    Styles(
+    Style(
       type: 'paragraph',
       styleId: 'Header 1',
       styleName: 'Header 1',

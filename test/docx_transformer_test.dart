@@ -13,6 +13,9 @@ void main() {
       data: await file.readAsBytes(),
       options: DeltaParserOptions(
           shouldParserSizeToHeading: null,
+          acceptFontValueWhen: (value, fontFamily) {
+            return false;
+          },
           onDetectImage: (bytes, name) async {
             return 'path/to/my_image_${nanoid(8)}';
           }),

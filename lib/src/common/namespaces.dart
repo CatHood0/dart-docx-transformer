@@ -25,6 +25,7 @@ const namespaces = <String, String>{
   "headers": 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header',
   "footers": 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer',
   "themes": 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme',
+  "extendedProperties": 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties',
   "coreProperties": 'http://schemas.openxmlformats.org/package/2006/metadata/core-properties',
   "officeDocumentRelation": 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument',
   "corePropertiesRelation":

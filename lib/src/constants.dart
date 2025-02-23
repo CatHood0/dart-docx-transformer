@@ -2,9 +2,26 @@ import 'package:docx_transformer/src/common/document/document_margins.dart';
 import 'package:docx_transformer/src/common/document/document_properties.dart';
 import 'package:docx_transformer/src/common/document/document_styles.dart';
 
+/// Every `0.5` spacing, is equals to 120
+/// it means, that `1.0` is equals to 240,
+/// `1.5` is equals to 360, and etc
+///
+/// to get correct spacing to a value that we can understand
+/// we can use a `formula` like:
+///
+/// _Note: "n" represents the value that we found in `w:line` attribute_
+///
+///```
+/// lineSpacing = n / 240
+///```
+const double kDefaultSpacing1 = 240;
+const double kDefaultSpacing15 = 360;
+const double kDefaultSpacing2 = 400;
+
 const String defaultFont = 'Times New Roman';
 const int defaultFontSize = 22;
 const String defaultLang = 'en-US';
+const String defaultOrderedListStyleType = 'decimal';
 const Orientation defaultOrientation = Orientation.portrait;
 const double landscapeWidth = 15840;
 const double landscapeHeight = 12240;

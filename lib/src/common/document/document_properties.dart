@@ -89,6 +89,7 @@ class EditorSettings {
   bool showHeader;
   bool showFooter;
   int fontSize;
+  int complexScriptFontSize;
   PageSize pageSize;
   bool showPageNumber;
   bool showLineNumber;
@@ -109,12 +110,14 @@ class EditorSettings {
     required this.showLineNumber,
     required this.lineNumberOptions,
     required this.decodeUnicode,
+    required this.complexScriptFontSize,
   });
 
   factory EditorSettings.basic({PageSize? size}) {
     return EditorSettings(
       fontFamily: defaultFont,
       fontSize: defaultFontSize,
+      complexScriptFontSize: defaultFontSize,
       headerType: 'default',
       showHeader: false,
       footerType: 'default',

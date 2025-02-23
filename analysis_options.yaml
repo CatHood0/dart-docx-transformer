@@ -1,4 +1,58 @@
 include: package:flutter_lints/flutter.yaml
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+analyzer:
+  language:
+    strict-casts: false 
+    strict-inference: false 
+    strict-raw-types: true 
+  errors:
+    library_private_types_in_public_api: ignore
+    always_specify_types: ignore
+    avoid_init_to_null: ignore
+    avoid_print: ignore
+    avoid_single_cascade_in_expression_statements: ignore
+    constant_identifier_names: ignore
+    curly_braces_in_flow_control_structures: ignore
+    depend_on_referenced_packages: ignore
+    included_file_warning: ignore
+    non_constant_identifier_names: ignore
+    use_build_context_synchronously: ignore
+    void_checks: ignore
+
+
+linter:
+  rules:
+    cascade_invocations: false
+    implementation_imports: false 
+    prefer_double_quotes: false
+    unnecessary_final: false 
+    prefer_expression_function_bodies: false
+    always_put_required_named_parameters_first: true 
+    flutter_style_todos: false
+    avoid_catches_without_on_clauses: false
+    lines_longer_than_80_chars: false
+    avoid_annotating_with_dynamic: false
+    always_use_package_imports: false
+    no_default_cases: false
+    prefer_asserts_with_message: false
+    avoid_types_on_closure_parameters: false
+    diagnostic_describe_all_properties: false
+    avoid_positional_boolean_parameters: false
+    prefer_const_constructors_in_immutables: false
+    hash_and_equals: true
+    implicit_reopen: true
+    cancel_subscriptions: true
+    close_sinks: true
+    avoid_web_libraries_in_flutter: true
+    avoid_type_to_string: true
+    avoid_relative_lib_imports: true
+    avoid_empty_else: true
+    avoid_dynamic_calls: true
+    unnecessary_statements: true
+    use_key_in_widget_constructors: true
+    prefer_conditional_assignment: true
+    prefer_const_declarations: true
+    use_string_buffers: true
+    valid_regexps: true
+    control_flow_in_finally: true
+    always_specify_types: true

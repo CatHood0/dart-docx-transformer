@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:docx_transformer/src/common/generators/convert_xml_styles_to_doc.dart';
 import 'package:docx_transformer/src/common/generators/hexadecimal_generator.dart';
 import 'package:docx_transformer/src/common/generators/styles_creator.dart';
@@ -11,7 +13,7 @@ class DocumentStylesSheet {
   final ParagraphStyleSheet? paragraphStyleSheet;
 
   /// These are the global styles
-  final List<Styles> styles;
+  final List<Style> styles;
 
   const DocumentStylesSheet({
     required this.styles,
@@ -29,7 +31,7 @@ class DocumentStylesSheet {
   }
 
   /// Return all the styles that contains the id that relatedWith param has
-  Iterable<Styles>? getRelationships(Styles style) {
+  Iterable<Style>? getRelationships(Style style) {
     if (style.relatedWith.isEmpty) return null;
     return styles.where(
       (e) => e.id == style.relatedWith || e.styleId == style.relatedWith,
@@ -40,7 +42,7 @@ class DocumentStylesSheet {
   ///
   /// If a internal style contains a link to another Style, will search to found a style that does
   /// not contain a relation
-  Iterable<Iterable<Styles>> getDeepRelationships(Styles style) {
+  Iterable<Iterable<Style>> getDeepRelationships(Style style) {
     if (style.relatedWith.isEmpty) return [];
     return styles.map((e) {
       if (e.relatedWith.isEmpty) return [e];
@@ -48,18 +50,32 @@ class DocumentStylesSheet {
     });
   }
 
-  Styles? getStyleById(String id) {
+  Style? getStyleById(String id) {
     if (id.isEmpty) return null;
     return styles.firstWhere(
       (e) => e.id == id || e.styleId == id,
     );
   }
 
-  Styles? getStyleByName(String name) {
+  Style? getStyleByName(String name) {
     if (name.isEmpty) return null;
     return styles.firstWhere(
       (e) => e.styleName == name,
     );
+  }
+
+  Style getParentOf(Style style, {bool deep = false}) {
+    final Style parent = styles.firstWhere(
+      (Style s) => s.styleId == style.basedOn,
+      orElse: () => Style.invalid(),
+    );
+    if (parent.id != 'invalid') {
+      if (parent.basedOn.isNotEmpty && deep) {
+        return getParentOf(parent);
+      }
+      return parent;
+    }
+    return style;
   }
 }
 
@@ -89,7 +105,7 @@ class SubStyles {
 ///
 /// Assume that we build a style like this
 /// ```dart
-/// final style = Styles(
+/// final style = Style(
 ///   styleId: '624'
 ///   type: 'paragraph',
 ///   styleName: 'Header 1'
@@ -130,7 +146,7 @@ class SubStyles {
 ///   <w:spacing w:before="360" w:after="180" />
 /// </w:style>
 /// ```
-class Styles {
+class Style {
   // the internal identifier of this style
   late String id;
   final String type;
@@ -144,7 +160,7 @@ class Styles {
   final String relatedWith;
 
   ///
-  final String baseOn;
+  final String basedOn;
 
   /// This is the name of the style that
   /// will be showed by the Word Editor
@@ -160,7 +176,7 @@ class Styles {
 
   /// any extra data that need to be here
   final Map<String, dynamic>? extra;
-  Styles({
+  Style({
     required this.type,
     required this.styleId,
     required this.styleName,
@@ -170,30 +186,39 @@ class Styles {
     this.inline,
     this.extra,
     this.relatedWith = '',
-    this.baseOn = '',
+    this.basedOn = '',
     String? id,
   }) : id = id ?? nanoid(8);
 
+  factory Style.invalid() {
+    return Style(
+      id: 'invalid',
+      type: 'invalid',
+      styleId: 'invalid',
+      styleName: 'invalid',
+    );
+  }
+
   @override
   String toString() {
-    return 'Styles($id, '
+    return 'Style($id, '
         '${type.isEmpty ? 'no-type' : type}, '
         '$styleId, ${defaultValue ?? extra}, '
         'block: $block, '
         'inline: $inline, '
         'related: $relatedWith, '
-        'base on: $baseOn), '
+        'base on: $basedOn), '
         'Style name: $styleName => [$subStyles]';
   }
 
   String toPrettyString() {
-    return 'Styles => $id\n'
+    return 'Style => $id\n'
         'Type: ${type.isEmpty ? 'no-type' : type},\n'
         'StyleId: $styleId, ${defaultValue ?? extra},\n'
         'Block: $block, \n'
         'inline: $inline,\n'
         'related with: $relatedWith, \n'
-        'based on: $baseOn, \n'
+        'based on: $basedOn, \n'
         'Style name: $styleName\n'
         'SubStyles: ${subStyles.join('\n')}\n';
   }
