@@ -89,7 +89,6 @@ class DocxToDelta extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions>
         defaultTabStop: _kDefaultTabStop,
       ),
     );
-    print(document?.toXmlString(pretty: true));
 
     final Iterable<xml.XmlElement> paragraphNodes = document.findAllElements(xmlParagraphNode);
 
