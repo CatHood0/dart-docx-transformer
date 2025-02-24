@@ -41,12 +41,11 @@ class Options extends ParserOptions {
 
 class PlainTextToDocx extends Parser<String, Future<Uint8List?>, Options> {
   PlainTextToDocx({
-    required super.data,
     required super.options,
   });
 
   @override
-  Future<Uint8List> build() async {
+  Future<Uint8List> build({required String data}) async {
     final ZipEncoder encoder = ZipEncoder();
     final Archive archive = Archive();
     final DocumentProperties defaultProperties = options.properties ??
@@ -61,11 +60,10 @@ class PlainTextToDocx extends Parser<String, Future<Uint8List?>, Options> {
           revisions: options.revisions,
         );
 
-    final String docStr = _documentContentBuilder();
+    final String docStr = _documentContentBuilder(data: data);
 
     final String content = generateDocumentXml(defaultProperties, docStr);
     final XmlDocument docNode = XmlDocument.parse(content);
-    print(docNode.toXmlString(pretty: true));
 
     final EditorProperties editorProperties = defaultEditorProperties(content: data);
 
@@ -139,7 +137,7 @@ class PlainTextToDocx extends Parser<String, Future<Uint8List?>, Options> {
     return encoder.encodeBytes(archive);
   }
 
-  String _documentContentBuilder() {
+  String _documentContentBuilder({required String data}) {
     final List<String> paragraphs = data.split('\n');
     final StringBuffer buffer = StringBuffer();
     for (final String pr in paragraphs) {

@@ -7,14 +7,13 @@ import '../../common/default/default_document_styles.dart';
 
 class DeltaToDocx extends Parser<Delta, Future<Uint8List?>?, DocxParserOptions> {
   DeltaToDocx({
-    required super.data,
     required super.options,
-  }) : assert(data.isEmpty, 'The Delta passed cannot be empty');
+  });
 
   // we will transform all to a encoded file and returned as bytes to be
   // writted by the developer
   @override
-  Future<Uint8List?>? build() {
+  Future<Uint8List?>? build({required Delta data}) {
     final Document? document = RichTextParser().parseDelta(data);
     final DocumentStylesSheet docStyles = options.documentProperties.docStyles ?? defaultDocumentStyles;
     if (document == null) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:archive/archive.dart';
@@ -14,14 +15,13 @@ import '../../constants.dart';
 
 class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions> {
   DeltaFromDocxParser({
-    required super.data,
     required super.options,
   });
 
   ZipDecoder? _zipDecoder;
 
   @override
-  Future<Delta?>? build() async {
+  Future<Delta?>? build({required Uint8List data}) async {
     final Delta delta = Delta();
     _zipDecoder ??= ZipDecoder();
 
@@ -76,6 +76,8 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
     if (document == null) {
       throw StateError("$documentFilePath couldn't be founded into the File passed");
     }
+
+    print(document.toXmlString(pretty: true));
 
     _buildTabMultiplierIfNeeded(settings);
 

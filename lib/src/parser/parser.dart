@@ -10,13 +10,11 @@ import '../constants.dart';
 
 abstract class Parser<T, R, O extends ParserOptions> {
   Parser({
-    required this.data,
     required this.options,
   });
-  final T data;
   final O options;
 
-  R build();
+  R build({required T data});
 
   void buildRelations(
     xml.XmlDocument? documentRels, {

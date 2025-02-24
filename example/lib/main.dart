@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:docx_transformer/docx_transformer.dart';
 import 'package:example/editor.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' hide Node;
 import 'package:flutter_quill/quill_delta.dart';
@@ -35,6 +37,22 @@ class _DesktopTreeViewExampleState extends State<Body> {
   final QuillController _controller = QuillController.basic();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+  final DeltaFromDocxParser parser = DeltaFromDocxParser(
+    options: DeltaParserOptions(
+      ignoreColorWhenNoSupported: true,
+      onDetectImage: (Uint8List imageBytes, String name) async {
+        final String path = (await getTemporaryDirectory()).path;
+        final File file = File(join(path, name));
+        if (!(await file.exists())) {
+          await file.writeAsBytes(imageBytes);
+        }
+        return file.path;
+      },
+      shouldParserSizeToHeading: (String value) {
+        return null;
+      },
+    ),
+  );
 
   void _loadDocxDocument() async {
     final XFile? file = await openFile(
@@ -44,24 +62,7 @@ class _DesktopTreeViewExampleState extends State<Body> {
       ],
     );
     if (file != null) {
-      final Delta? delta =
-          await DeltaFromDocxParser(
-            data: await file.readAsBytes(),
-            options: DeltaParserOptions(
-              ignoreColorWhenNoSupported: true,
-              onDetectImage: (Uint8List imageBytes, String name) async {
-                final String path = (await getTemporaryDirectory()).path;
-                final File file = File(join(path, name));
-                if (!(await file.exists())) {
-                  await file.writeAsBytes(imageBytes);
-                }
-                return file.path;
-              },
-              shouldParserSizeToHeading: (String value) {
-                return null;
-              },
-            ),
-          ).build();
+      final Delta? delta = await parser.build(data: await file.readAsBytes());
       if (delta != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _controller.document = Document.fromDelta(delta);
@@ -99,7 +100,8 @@ class _DesktopTreeViewExampleState extends State<Body> {
                             data: plain,
                             options: Options(onDetectImage: (bytes, v) async => '', title: 'documento 2'),
                           ).build();
-                      const String mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                      const String mimeType =
+                          'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
                       final XFile textFile = XFile.fromData(bytes, mimeType: mimeType, name: 'document4.docx');
                       await textFile.saveTo(location.path);
                     }
