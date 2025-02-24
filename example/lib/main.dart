@@ -89,6 +89,24 @@ class _DesktopTreeViewExampleState extends State<Body> {
                   child: Text('select a docx file'),
                 ),
                 const SizedBox.shrink(),
+                MaterialButton(
+                  onPressed: () async {
+                    final location = await getSaveLocation();
+                    if (location != null) {
+                      final String plain = _controller.document.toPlainText(FlutterQuillEmbeds.editorBuilders());
+                      final Uint8List bytes =
+                          await PlainTextToDocx(
+                            data: plain,
+                            options: Options(onDetectImage: (bytes, v) async => '', title: 'documento 2'),
+                          ).build();
+                      const String mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                      final XFile textFile = XFile.fromData(bytes, mimeType: mimeType, name: 'document4.docx');
+                      await textFile.saveTo(location.path);
+                    }
+                  },
+                  child: Text('export data to plain docx'),
+                ),
+                const SizedBox.shrink(),
               ],
             ),
           ),

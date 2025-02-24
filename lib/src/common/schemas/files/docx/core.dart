@@ -1,27 +1,5 @@
-import 'package:docx_transformer/docx_transformer.dart';
-import 'package:docx_transformer/src/common/namespaces.dart';
-
-/// Correspond to file docProps/core.xml
-String coreDocPropsXmlElement(DocumentProperties properties, EditorProperties editorProps) => '''
-    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-      <cp:coreProperties
-        xmlns:cp="${namespaces['coreProperties']}"
-        xmlns:dc="${namespaces['dc']}"
-        xmlns:dcterms="${namespaces['dcterms']}"
-        xmlns:dcmitype="${namespaces['dcmitype']}"
-        xmlns:xsi="${namespaces['xsi']}"
-      >
-        <dc:title>${properties.title}</dc:title>
-        <dc:subject>${properties.subject}</dc:subject>
-        <dc:creator>${properties.owner}</dc:creator>
-        <cp:keywords>${properties.keywords}</cp:keywords>
-        <dc:description>${properties.description}</dc:description>
-        <cp:lastModifiedBy>${properties.lastModifiedBy}</cp:lastModifiedBy>
-        <cp:revision>${editorProps.numberOfRevisions}</cp:revision>
-        <dcterms:createdxsi:type="dcterms:W3CDTF">${properties.createdAt.toUtc()}</dcterms:created>
-        <dcterms:modified xsi:type="dcterms:W3CDTF">${properties.modifiedAt.toUtc()}</dcterms:modified>
-      </cp:coreProperties>
-''';
+import '../../../../../docx_transformer.dart';
+import '../../../namespaces.dart';
 
 /// Correspond to file docProps/app.xml
 //
@@ -46,4 +24,26 @@ String appDocPropsXmlElement(DocumentProperties docProps, EditorProperties prope
       <HyperlinksChanged>false</HyperlinksChanged>
       <AppVersion>${properties.appVersion}</AppVersion>
     </Properties>
+''';
+
+/// Correspond to file docProps/core.xml
+String generateCoreXml(DocumentProperties properties, EditorProperties editorProps) => '''
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+      <cp:coreProperties
+        xmlns:cp="${namespaces['coreProperties']}"
+        xmlns:dc="${namespaces['dc']}"
+        xmlns:dcterms="${namespaces['dcterms']}"
+        xmlns:dcmitype="${namespaces['dcmitype']}"
+        xmlns:xsi="${namespaces['xsi']}"
+      >
+        <dc:title>${properties.title}</dc:title>
+        <dc:subject>${properties.subject}</dc:subject>
+        <dc:creator>${properties.owner}</dc:creator>
+        <cp:keywords>${properties.keywords}</cp:keywords>
+        <dc:description>${properties.description}</dc:description>
+        <cp:lastModifiedBy>${properties.lastModifiedBy}</cp:lastModifiedBy>
+        <cp:revision>${editorProps.numberOfRevisions}</cp:revision>
+        <dcterms:createdxsi:type="dcterms:W3CDTF">${properties.createdAt.toUtc()}</dcterms:created>
+        <dcterms:modified xsi:type="dcterms:W3CDTF">${properties.modifiedAt.toUtc()}</dcterms:modified>
+      </cp:coreProperties>
 ''';

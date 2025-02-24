@@ -1,6 +1,17 @@
-import 'package:docx_transformer/src/common/document/document_margins.dart';
-import 'package:docx_transformer/src/common/document/document_properties.dart';
-import 'package:docx_transformer/src/common/document/document_styles.dart';
+import 'common/document/document_margins.dart';
+import 'common/document/document_properties.dart';
+import 'common/document/document_styles.dart';
+import 'common/document/editor_properties.dart';
+
+const String defaultFont = 'Times New Roman';
+const int defaultFontSize = 22;
+const String defaultLang = 'en-US';
+
+const String defaultOrderedListStyleType = 'decimal';
+final Map<String, dynamic> kDefaultPreserveWhitespaceMark =
+    Map<String, String>.unmodifiable(<String, dynamic>{'xml:space': 'preserved'});
+
+const Orientation defaultOrientation = Orientation.portrait;
 
 /// Every `0.5` spacing, is equals to 120
 /// it means, that `1.0` is equals to 240,
@@ -17,17 +28,7 @@ import 'package:docx_transformer/src/common/document/document_styles.dart';
 const double kDefaultSpacing1 = 240;
 const double kDefaultSpacing15 = 360;
 const double kDefaultSpacing2 = 400;
-
-final RegExp imageNamePattern = RegExp(r'.*\/');
-
-const String defaultFont = 'Times New Roman';
-const int defaultFontSize = 22;
-const String defaultLang = 'en-US';
-const String defaultOrderedListStyleType = 'decimal';
-const Orientation defaultOrientation = Orientation.portrait;
-const double landscapeWidth = 15840;
 const double landscapeHeight = 12240;
-
 const DocumentMargins landscapeMargins = DocumentMargins(
   top: 1800,
   right: 1440,
@@ -37,6 +38,7 @@ const DocumentMargins landscapeMargins = DocumentMargins(
   footer: 720,
   gutter: 0,
 );
+const double landscapeWidth = 15840;
 
 const DocumentMargins portraitMargins = DocumentMargins(
   top: 1440,
@@ -48,13 +50,15 @@ const DocumentMargins portraitMargins = DocumentMargins(
   gutter: 0,
 );
 
+final RegExp imageNamePattern = RegExp(r'.*\/');
+
 DocumentProperties defaultDocumentProperties({
   String title = '',
   String owner = '',
   String subject = '',
   String description = '',
   String lastModifiedBy = '',
-  List<String> keywords = const [],
+  List<String> keywords = const <String>[],
   DocumentStylesSheet? styles,
   int revisions = 1,
 }) =>
@@ -77,3 +81,40 @@ DocumentProperties defaultDocumentProperties({
         ),
       ),
     );
+
+EditorProperties defaultEditorProperties({
+  required String content,
+}) =>
+    EditorProperties(
+      numberOfRevisions: 1,
+      paragraphs: content.countParagraphs,
+      lines: content.isEmpty ? 0 : content.countLines,
+      characters: content.charsLength,
+      charactersWithSpaces: content.charsWithoutSpaces,
+      words: content.countWords,
+      pages: 0,
+    );
+
+extension on String {
+  int get countParagraphs => split('\n')
+      .where(
+        (String p) => p.trim().isNotEmpty,
+      )
+      .length;
+
+  int get countLines => split('\n').length;
+
+  int get countWords => split(RegExp(r'\s+'))
+      .where(
+        (String p) => p.trim().isNotEmpty,
+      )
+      .length;
+
+  int get charsWithoutSpaces {
+    return replaceAll(RegExp(r'\s+'), '').length;
+  }
+
+  int get charsLength {
+    return length;
+  }
+}

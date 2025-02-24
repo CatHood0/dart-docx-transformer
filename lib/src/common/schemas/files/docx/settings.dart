@@ -1,6 +1,6 @@
-import 'package:docx_transformer/src/common/namespaces.dart';
+import '../../../namespaces.dart';
 
-String settingsXML() => '''
+String generateSettingsXML() => '''
     <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <w:settings 
       xmlns:w="${namespaces['w']}" 

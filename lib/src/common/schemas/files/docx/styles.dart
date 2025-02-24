@@ -3,6 +3,7 @@ import 'package:docx_transformer/src/common/namespaces.dart';
 
 //TODO: add the proper styles for blockquote and code
 // to make correct conversions
+//TODO: implement conversion of DocumentStylesSheet to use them if are not empty
 String generateStylesXML(
   DocumentProperties properties,
 ) =>
@@ -39,15 +40,15 @@ String generateStylesXML(
 	  <w:uiPriority w:val="9" />
 	  <w:qFormat />
 	  <w:pPr>
-		<w:keepNext />
-		<w:keepLines />
-		<w:spacing w:before="480" />
-		<w:outlineLvl w:val="0" />
+		  <w:keepNext />
+		  <w:keepLines />
+		  <w:spacing w:before="480" />
+		  <w:outlineLvl w:val="0" />
 	  </w:pPr>
 	  <w:rPr>
-		<w:b />
-		<w:sz w:val="48" />
-		<w:szCs w:val="48" />
+		  <w:b />
+		  <w:sz w:val="48" />
+		  <w:szCs w:val="48" />
 	  </w:rPr>
 	</w:style>
 	<w:style w:type="paragraph" w:styleId="Heading2">
@@ -58,15 +59,15 @@ String generateStylesXML(
 	  <w:unhideWhenUsed />
 	  <w:qFormat />
 	  <w:pPr>
-		<w:keepNext />
-		<w:keepLines />
-		<w:spacing w:before="360" w:after="80" />
-		<w:outlineLvl w:val="1" />
+		  <w:keepNext />
+		  <w:keepLines />
+		  <w:spacing w:before="360" w:after="80" />
+		  <w:outlineLvl w:val="1" />
 	  </w:pPr>
 	  <w:rPr>
-		<w:b />
-		<w:sz w:val="36" />
-		<w:szCs w:val="36" />
+		  <w:b />
+		  <w:sz w:val="36" />
+		  <w:szCs w:val="36" />
 	  </w:rPr>
 	</w:style>
 	<w:style w:type="paragraph" w:styleId="Heading3">
@@ -78,15 +79,15 @@ String generateStylesXML(
 	  <w:unhideWhenUsed />
 	  <w:qFormat />
 	  <w:pPr>
-		<w:keepNext />
-		<w:keepLines />
-		<w:spacing w:before="280" w:after="80" />
-		<w:outlineLvl w:val="2" />
+		  <w:keepNext />
+		  <w:keepLines />
+		  <w:spacing w:before="280" w:after="80" />
+		  <w:outlineLvl w:val="2" />
 	  </w:pPr>
 	  <w:rPr>
-		<w:b />
-		<w:sz w:val="28" />
-		<w:szCs w:val="28" />
+		  <w:b />
+		  <w:sz w:val="28" />
+		  <w:szCs w:val="28" />
 	  </w:rPr>
 	</w:style>
 	<w:style w:type="paragraph" w:styleId="Heading4">
@@ -98,15 +99,15 @@ String generateStylesXML(
 	  <w:unhideWhenUsed />
 	  <w:qFormat />
 	  <w:pPr>
-		<w:keepNext />
-		<w:keepLines />
-		<w:spacing w:before="240" w:after="40" />
-		<w:outlineLvl w:val="3" />
+		  <w:keepNext />
+		  <w:keepLines />
+		  <w:spacing w:before="240" w:after="40" />
+		  <w:outlineLvl w:val="3" />
 	  </w:pPr>
 	  <w:rPr>
-		<w:b />
-		<w:sz w:val="24" />
-		<w:szCs w:val="24" />
+		  <w:b />
+		  <w:sz w:val="24" />
+		  <w:szCs w:val="24" />
 	  </w:rPr>
 	</w:style>
 	<w:style w:type="paragraph" w:styleId="Heading5">
@@ -118,13 +119,13 @@ String generateStylesXML(
 	  <w:unhideWhenUsed />
 	  <w:qFormat />
 	  <w:pPr>
-		<w:keepNext />
-		<w:keepLines />
-		<w:spacing w:before="220" w:after="40" />
-		<w:outlineLvl w:val="4" />
+		  <w:keepNext />
+		  <w:keepLines />
+		  <w:spacing w:before="220" w:after="40" />
+		  <w:outlineLvl w:val="4" />
 	  </w:pPr>
 	  <w:rPr>
-		<w:b />
+		  <w:b />
 	  </w:rPr>
 	</w:style>
 	<w:style w:type="paragraph" w:styleId="Heading6">
@@ -136,15 +137,15 @@ String generateStylesXML(
 	  <w:unhideWhenUsed />
 	  <w:qFormat />
 	  <w:pPr>
-		<w:keepNext />
-		<w:keepLines />
-		<w:spacing w:before="200" w:after="40" />
-		<w:outlineLvl w:val="5" />
+		  <w:keepNext />
+		  <w:keepLines />
+		  <w:spacing w:before="200" w:after="40" />
+		  <w:outlineLvl w:val="5" />
 	  </w:pPr>
 	  <w:rPr>
-		<w:b />
-		<w:sz w:val="20" />
-		<w:szCs w:val="20" />
+		  <w:b />
+		  <w:sz w:val="20" />
+		  <w:szCs w:val="20" />
 	  </w:rPr>
 	</w:style>
   </w:styles>

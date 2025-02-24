@@ -1,7 +1,7 @@
 import 'package:docx_transformer/src/common/namespaces.dart';
 
 /// Font data available here: https://fossies.org/linux/pandoc/data/docx/word/fontTable.xml
-String fontTableXML() => '''
+String generateFontTableXML() => '''
   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <w:fonts
       xmlns:r="${namespaces['r']}"

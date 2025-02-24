@@ -1,8 +1,11 @@
-import 'package:docx_transformer/docx_transformer.dart';
-import 'package:docx_transformer/src/common/namespaces.dart';
+import '../../../../../docx_transformer.dart';
+import '../../../namespaces.dart';
 
-String generateDocumentXml(DocumentProperties properties) => '''
-  <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+String generateDocumentXml(
+  DocumentProperties properties, [
+  String content = '',
+]) =>
+    '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <w:document
      xmlns:a="${namespaces['a']}"
      xmlns:cdr="${namespaces['cdr']}"
@@ -18,6 +21,7 @@ String generateDocumentXml(DocumentProperties properties) => '''
      xmlns:wne="${namespaces['wne']}"
     >
       <w:body>
+        $content
         <w:sectPr>
           <w:pgSz 
             w:w="${properties.editorSettings.pageSize.width}" 

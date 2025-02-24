@@ -31,15 +31,16 @@ List<Style> convertXmlStylesToStyles(
     final xml.XmlElement? paragraphStyle = styleElement.getElement('w:pPr');
     final xml.XmlElement? paragraphLineStyle = styleElement.getElement('w:rPr');
 
-    final List<SubStyles> subStyles = <SubStyles>[];
-    final Map<String, dynamic> attributes = <String, dynamic>{};
     final Map<String, Map<String, dynamic>> styleAttrs = <String, Map<String, dynamic>>{};
     styleAttrs['inline'] = <String, dynamic>{};
     styleAttrs['block'] = <String, dynamic>{};
     if (paragraphLineStyle != null) {
       final xml.XmlElement? fontFamilyNode = paragraphLineStyle.getElement(xmlFontsNode);
-      final String? family =
-          fontFamilyNode?.getAttribute('w:asciiTheme') ?? fontFamilyNode?.getElement('w:hAnsiTheme') as String?;
+      final String? family = fontFamilyNode?.getAttribute('w:ascii') ??
+          fontFamilyNode?.getAttribute('w:hAnsi') ??
+          fontFamilyNode?.getAttribute('w:cs') ??
+          fontFamilyNode?.getAttribute('w:asciiTheme') ??
+          fontFamilyNode?.getElement('w:hAnsiTheme') as String?;
       final xml.XmlElement? sizeNode = paragraphLineStyle.getElement(xmlSizeFontNode);
       final String? color = paragraphLineStyle.getElement(xmlCharacterColorNode)?.getAttribute('w:val');
       final String? backgroundColor =
@@ -60,7 +61,7 @@ List<Style> convertXmlStylesToStyles(
       if (underlineNode != null && underlineNode.localName == 'u') {
         styleAttrs['inline']?['underline'] = true;
       }
-      if (boldNode != null && boldNode.localName == 'u') {
+      if (boldNode != null && boldNode.localName == 'b') {
         styleAttrs['inline']?['bold'] = true;
       }
       if (strikeNode != null) {
@@ -133,10 +134,13 @@ List<Style> convertXmlStylesToStyles(
         }
         if (acceptSize) {
           final int? possibleLevel = context.shouldParserSizeToHeading!(sizeAttr);
-          if (possibleLevel != null) {
+          if (possibleLevel != null && possibleLevel > 0 && possibleLevel < 7) {
             styleAttrs['block']?['header'] = '$possibleLevel';
           } else {
-            styleAttrs['inline']?['size'] = sizeNode;
+            final int? numSize = int.tryParse(size);
+            if (numSize != null) {
+              styleAttrs['inline']?['size'] = numSize;
+            }
           }
         }
       }
@@ -240,29 +244,11 @@ List<Style> convertXmlStylesToStyles(
         }
       }
     }
-    for (xml.XmlElement node in styleElement.children.whereType<xml.XmlElement>()) {
-      if (node.name.local == 'name' ||
-          node.localName == 'pPr' ||
-          node.localName == 'rPr' ||
-          node.localName == 'link' ||
-          node.localName == 'uiPriority' ||
-          node.localName == 'basedOn') {
-        continue;
-      }
-
-      for (xml.XmlAttribute attr in node.attributes) {
-        attributes[attr.name.local] = attr.value;
-      }
-
-      subStyles.add(
-        SubStyles(
-          propertyName: node.name.local,
-          value: null,
-          extraInfo: attributes.isNotEmpty ? <String, dynamic>{...attributes} : null,
-        ),
-      );
-      attributes.clear();
-    }
+    final List<StyleConfigurator> configurators = List<StyleConfigurator>.from(
+      _buildConfigurators(
+        styleElement,
+      ),
+    );
 
     result.add(
       Style(
@@ -272,7 +258,7 @@ List<Style> convertXmlStylesToStyles(
         basedOn: basedOn,
         styleId: styleId,
         styleName: styleName,
-        subStyles: subStyles,
+        configurators: configurators,
         block: styleAttrs['block'] as Map<String, dynamic>,
         inline: styleAttrs['inline'] as Map<String, dynamic>,
         extra: null,
@@ -280,6 +266,41 @@ List<Style> convertXmlStylesToStyles(
     );
   }
   return result;
+}
+
+Iterable<StyleConfigurator> _buildConfigurators(xml.XmlElement? element) {
+  final List<StyleConfigurator> configurators = <StyleConfigurator>[];
+  if (element == null) return configurators;
+  final Map<String, dynamic> attributes = <String, dynamic>{};
+  for (xml.XmlElement node in element.children.whereType<xml.XmlElement>()) {
+    if (node.name.local == 'name' ||
+        node.localName == 'pPr' ||
+        node.localName == 'rPr' ||
+        node.localName == 'link' ||
+        node.localName == 'uiPriority' ||
+        node.localName == 'basedOn') {
+      continue;
+    }
+
+    for (final xml.XmlAttribute attr in node.attributes) {
+      attributes[attr.name.local] = attr.value;
+    }
+
+    configurators.add(
+      StyleConfigurator(
+        propertyName: node.name.local,
+        value: node.getAttribute('w:val'),
+        attributes: <String, dynamic>{...attributes},
+        configurators: () {
+          if (node.children.isNotEmpty) {
+            return _buildConfigurators(node);
+          }
+          return <StyleConfigurator>[];
+        }(),
+      ),
+    );
+  }
+  return configurators;
 }
 
 class ConverterFromXmlContext {

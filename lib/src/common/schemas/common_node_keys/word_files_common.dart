@@ -29,6 +29,9 @@ const String numberingXmlFilePath = 'word/numbering.xml';
 /// document settings file
 const String settingsXmlFilePath = 'word/settings.xml';
 
+/// document theme file
+const String themeXmlFilePath = 'word/themes.xml';
+
 /// document styles file
 const String stylesXmlFilePath = 'word/styles.xml';
 
