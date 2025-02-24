@@ -34,6 +34,8 @@ List<Style> convertXmlStylesToStyles(
     final Map<String, Map<String, dynamic>> styleAttrs = <String, Map<String, dynamic>>{};
     styleAttrs['inline'] = <String, dynamic>{};
     styleAttrs['block'] = <String, dynamic>{};
+    //TODO: parse these parts of convertions to a more convenient standard
+    // solution using StyleConfigurator class to save them
     if (paragraphLineStyle != null) {
       final xml.XmlElement? fontFamilyNode = paragraphLineStyle.getElement(xmlFontsNode);
       final String? family = fontFamilyNode?.getAttribute('w:ascii') ??
@@ -45,7 +47,6 @@ List<Style> convertXmlStylesToStyles(
       final String? color = paragraphLineStyle.getElement(xmlCharacterColorNode)?.getAttribute('w:val');
       final String? backgroundColor =
           paragraphLineStyle.getElement(xmlBackgroundCharacterColorNode)?.getAttribute('w:val');
-      final xml.XmlElement? italicNode = paragraphLineStyle.getElement(xmlItalicNode);
       final xml.XmlElement? underlineNode = paragraphLineStyle.getElement(xmlUnderlineNode);
       final xml.XmlElement? boldNode = paragraphLineStyle.getElement(xmlBoldNode);
       final xml.XmlElement? strikeNode = paragraphLineStyle.getElement(xmlStrikethroughNode);
@@ -55,9 +56,6 @@ List<Style> convertXmlStylesToStyles(
       final String? highlightColor =
           paragraphLineStyle.getElement(xmlHighlightCharacterColorNode)?.getAttribute('w:val');
       final String? sizeAttr = sizeNode?.getAttribute('w:val');
-      if (italicNode != null && italicNode.localName == 'i') {
-        styleAttrs['inline']?['italic'] = true;
-      }
       if (underlineNode != null && underlineNode.localName == 'u') {
         styleAttrs['inline']?['underline'] = true;
       }
