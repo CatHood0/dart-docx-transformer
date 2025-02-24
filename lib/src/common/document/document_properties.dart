@@ -1,34 +1,11 @@
-import 'package:docx_transformer/docx_transformer.dart';
-import 'package:docx_transformer/src/common/document/document_margins.dart';
-import 'package:docx_transformer/src/constants.dart';
+import '../../../docx_transformer.dart';
+import '../../constants.dart';
+import 'document_margins.dart';
 
 /// Represents the common properties to be filled
 /// in the document. E.g: subject, owner, modified date,
 /// revisions, etc
 class DocumentProperties {
-  /// name of the person
-  /// that makes the last modify to the document
-  final String title;
-  final String description;
-  final String owner;
-  final String subject;
-  final String lastModifiedBy;
-  final String keywords;
-  final String encoding;
-  final Orientation orientation;
-
-  /// [standalone] Indicates whether the document relies on external entities or not. It can have two values:
-  /// * standalone="yes": The document is self-contained and does not depend on external entities (e.g., external DTDs or schemas).
-  /// * standalone="no": The document may rely on external entities.
-  final String standalone;
-  final DateTime modifiedAt;
-  final DateTime createdAt;
-  final DocumentStylesSheet? docStyles;
-  final EditorSettings editorSettings;
-  final int revisions;
-  late final DocumentMargins margins;
-  late final double availableDocumentSpace;
-
   DocumentProperties({
     required this.lastModifiedBy,
     required this.owner,
@@ -41,7 +18,7 @@ class DocumentProperties {
     required this.editorSettings,
     required this.orientation,
     DocumentMargins? margins,
-    List<String> keywords = const [],
+    List<String> keywords = const <String>[],
     this.docStyles,
   })  : standalone = 'yes',
         keywords = keywords.join(','),
@@ -61,7 +38,6 @@ class DocumentProperties {
     this.margins = margins ?? (isPortraitOrientation ? portraitMargins : landscapeMargins);
     availableDocumentSpace = editorSettings.pageSize.width - this.margins.left - this.margins.right;
   }
-
   factory DocumentProperties.blank({String? owner}) {
     return DocumentProperties(
       lastModifiedBy: owner ?? '',
@@ -74,28 +50,39 @@ class DocumentProperties {
       createdAt: DateTime.now(),
       editorSettings: EditorSettings.basic(),
       orientation: Orientation.portrait,
-      keywords: const [],
+      keywords: const <String>[],
       docStyles: null,
     );
   }
+
+  /// name of the person
+  /// that makes the last modify to the document
+  final String title;
+  final String description;
+  final String owner;
+  final String subject;
+  final String lastModifiedBy;
+  final String keywords;
+
+  final String encoding;
+  final Orientation orientation;
+
+  /// [standalone] Indicates whether the document relies on external entities or not. It can have two values:
+  /// * standalone="yes": The document is self-contained and does not depend on external entities (e.g., external DTDs or schemas).
+  /// * standalone="no": The document may rely on external entities.
+  final String standalone;
+  final DateTime modifiedAt;
+  final DateTime createdAt;
+  final DocumentStylesSheet? docStyles;
+  final EditorSettings editorSettings;
+  final int revisions;
+
+  late final DocumentMargins margins;
+
+  late final double availableDocumentSpace;
 }
 
 class EditorSettings {
-  String fontFamily;
-  String headerType;
-  String footerType;
-  String language;
-  String defaultOrderedListStyleType;
-  bool showHeader;
-  bool showFooter;
-  int fontSize;
-  int complexScriptFontSize;
-  PageSize pageSize;
-  bool showPageNumber;
-  bool showLineNumber;
-  Map<String, dynamic> lineNumberOptions;
-  bool decodeUnicode;
-
   EditorSettings({
     required this.fontFamily,
     required this.fontSize,
@@ -112,7 +99,6 @@ class EditorSettings {
     required this.decodeUnicode,
     required this.complexScriptFontSize,
   });
-
   factory EditorSettings.basic({PageSize? size}) {
     return EditorSettings(
       fontFamily: defaultFont,
@@ -127,7 +113,7 @@ class EditorSettings {
       defaultOrderedListStyleType: 'decimal',
       showPageNumber: false,
       showLineNumber: false,
-      lineNumberOptions: {
+      lineNumberOptions: <String, dynamic>{
         'countBy': 1,
         'start': 0,
         'restart': 'continuous',
@@ -135,24 +121,40 @@ class EditorSettings {
       decodeUnicode: false,
     );
   }
-}
+  String fontFamily;
+  String headerType;
+  String footerType;
+  String language;
+  String defaultOrderedListStyleType;
+  bool showHeader;
+  bool showFooter;
+  int fontSize;
+  int complexScriptFontSize;
+  PageSize pageSize;
+  bool showPageNumber;
+  bool showLineNumber;
 
-class PageSize {
-  final double width;
-  final double height;
+  Map<String, dynamic> lineNumberOptions;
 
-  PageSize({
-    required this.width,
-    required this.height,
-  })  : assert(!width.isNegative, 'width cannot be negative'),
-        assert(!height.isNegative, 'height cannot be negative');
-
-  PageSize.zero()
-      : width = 0,
-        height = 0;
+  bool decodeUnicode;
 }
 
 enum Orientation {
   portrait,
   landscape,
+}
+
+class PageSize {
+  PageSize({
+    required this.width,
+    required this.height,
+  })  : assert(!width.isNegative, 'width cannot be negative'),
+        assert(!height.isNegative, 'height cannot be negative');
+  PageSize.zero()
+      : width = 0,
+        height = 0;
+
+  final double width;
+
+  final double height;
 }

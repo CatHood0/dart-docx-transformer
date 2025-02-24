@@ -30,4 +30,4 @@ doc/
 .flutter-plugins
 .flutter-plugins-dependencies
 build/
-
+test_resources/

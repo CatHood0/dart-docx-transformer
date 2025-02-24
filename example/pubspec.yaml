@@ -14,6 +14,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_quill: ^11.0.0
   flutter_quill_extensions: ^11.0.0
+  path_provider: 
+  path:
+  file_selector: 
   docx_transformer:
     path: ../
 

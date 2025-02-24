@@ -9,12 +9,6 @@ import 'package:xml/xml.dart' as xml;
 ///
 /// Note: **all the styles into this class will be writted into [styles.xml]**
 class DocumentStylesSheet {
-  /// These are the default styles applied to the paragraphs
-  final ParagraphStyleSheet? paragraphStyleSheet;
-
-  /// These are the global styles
-  final List<Style> styles;
-
   const DocumentStylesSheet({
     required this.styles,
     required this.paragraphStyleSheet,
@@ -22,13 +16,20 @@ class DocumentStylesSheet {
 
   factory DocumentStylesSheet.fromStyles(
     xml.XmlDocument styleDoc,
-    ConverterFromXmlContext context,
-  ) {
+    ConverterFromXmlContext context, {
+    bool computeIndents = false,
+  }) {
     return DocumentStylesSheet(
-      styles: convertXmlStylesToStyles(styleDoc, context),
+      styles: convertXmlStylesToStyles(styleDoc, context, computeIndents: computeIndents),
       paragraphStyleSheet: null,
     );
   }
+
+  /// These are the default styles applied to the paragraphs
+  final ParagraphStyleSheet? paragraphStyleSheet;
+
+  /// These are the global styles
+  final List<Style> styles;
 
   /// Return all the styles that contains the id that relatedWith param has
   Iterable<Style>? getRelationships(Style style) {
@@ -80,6 +81,11 @@ class DocumentStylesSheet {
 }
 
 class SubStyles {
+  SubStyles({
+    required this.propertyName,
+    required this.value,
+    required this.extraInfo,
+  });
   // correspond to the node localname
   final String propertyName;
   final Object? value;
@@ -87,11 +93,6 @@ class SubStyles {
   /// Represents the attributes of the [Node] style
   /// will be builded as a [XmlAttribute] if not null
   final Map<String, dynamic>? extraInfo;
-  SubStyles({
-    required this.propertyName,
-    required this.value,
-    required this.extraInfo,
-  });
   @override
   String toString() {
     return 'SubStyles($propertyName, $value, $extraInfo)';
@@ -147,6 +148,28 @@ class SubStyles {
 /// </w:style>
 /// ```
 class Style {
+  Style({
+    required this.type,
+    required this.styleId,
+    required this.styleName,
+    this.defaultValue,
+    this.subStyles = const [],
+    this.block,
+    this.inline,
+    this.extra,
+    this.relatedWith = '',
+    this.basedOn = '',
+    String? id,
+  }) : id = id ?? nanoid(8);
+
+  factory Style.invalid() {
+    return Style(
+      id: 'invalid',
+      type: 'invalid',
+      styleId: 'invalid',
+      styleName: 'invalid',
+    );
+  }
   // the internal identifier of this style
   late String id;
   final String type;
@@ -176,28 +199,6 @@ class Style {
 
   /// any extra data that need to be here
   final Map<String, dynamic>? extra;
-  Style({
-    required this.type,
-    required this.styleId,
-    required this.styleName,
-    this.defaultValue,
-    this.subStyles = const [],
-    this.block,
-    this.inline,
-    this.extra,
-    this.relatedWith = '',
-    this.basedOn = '',
-    String? id,
-  }) : id = id ?? nanoid(8);
-
-  factory Style.invalid() {
-    return Style(
-      id: 'invalid',
-      type: 'invalid',
-      styleId: 'invalid',
-      styleName: 'invalid',
-    );
-  }
 
   @override
   String toString() {

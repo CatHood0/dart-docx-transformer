@@ -1,12 +1,4 @@
 class DocumentMargins {
-  final int top;
-  final int right;
-  final int left;
-  final int bottom;
-  final int header;
-  final int footer;
-  final int gutter;
-
   const DocumentMargins({
     required this.top,
     required this.right,
@@ -16,4 +8,12 @@ class DocumentMargins {
     required this.footer,
     required this.gutter,
   });
+
+  final int top;
+  final int right;
+  final int left;
+  final int bottom;
+  final int header;
+  final int footer;
+  final int gutter;
 }

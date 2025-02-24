@@ -1,21 +1,26 @@
-import 'package:docx_transformer/docx_transformer.dart';
-import 'package:docx_transformer/src/common/default/default_size_to_heading.dart';
-import 'package:docx_transformer/src/common/schemas/common_node_keys/xml_keys.dart';
-import 'package:docx_transformer/src/common/tab_direction.dart' show TabDirection;
-import 'package:docx_transformer/src/constants.dart';
-import 'package:docx_transformer/src/util/predicate.dart';
 import 'package:xml/xml.dart' as xml;
+
+import '../../../docx_transformer.dart';
+import '../../constants.dart';
+import '../../util/predicate.dart';
+import '../color.dart';
+import '../default/default_size_to_heading.dart';
+import '../extensions/string_ext.dart';
+import '../schemas/common_node_keys/xml_keys.dart';
+import '../tab_direction.dart' show TabDirection;
 
 List<Style> convertXmlStylesToStyles(
   xml.XmlDocument styles,
-  ConverterFromXmlContext context,
-) {
+  ConverterFromXmlContext context, {
+  bool computeIndents = false,
+}) {
   final List<Style> result = <Style>[];
   context.shouldParserSizeToHeading ??= defaultSizeToHeading;
+  context.checkColor ??= isValidColor;
 
   final Iterable<xml.XmlElement> rawStyles = styles.findAllElements('w:style');
   if (rawStyles.isEmpty) return result;
-  for (xml.XmlElement styleElement in rawStyles) {
+  for (final xml.XmlElement styleElement in rawStyles) {
     final String type = styleElement.getAttribute('w:type') ?? '';
     final String styleId = styleElement.getAttribute('w:styleId') ?? '';
     final String relatedWith = styleElement.getElement('w:link')?.getAttribute('w:val') ?? '';
@@ -33,9 +38,9 @@ List<Style> convertXmlStylesToStyles(
     styleAttrs['block'] = <String, dynamic>{};
     if (paragraphLineStyle != null) {
       final xml.XmlElement? fontFamilyNode = paragraphLineStyle.getElement(xmlFontsNode);
-      final Object? family =
-          fontFamilyNode?.getAttribute('w:asciiTheme') ?? fontFamilyNode?.getElement('w:hAnsiTheme');
-      final String? sizeNode = paragraphLineStyle.getElement(xmlSizeFontNode)?.getAttribute('w:val');
+      final String? family =
+          fontFamilyNode?.getAttribute('w:asciiTheme') ?? fontFamilyNode?.getElement('w:hAnsiTheme') as String?;
+      final xml.XmlElement? sizeNode = paragraphLineStyle.getElement(xmlSizeFontNode);
       final String? color = paragraphLineStyle.getElement(xmlCharacterColorNode)?.getAttribute('w:val');
       final String? backgroundColor =
           paragraphLineStyle.getElement(xmlBackgroundCharacterColorNode)?.getAttribute('w:val');
@@ -43,47 +48,105 @@ List<Style> convertXmlStylesToStyles(
       final xml.XmlElement? underlineNode = paragraphLineStyle.getElement(xmlUnderlineNode);
       final xml.XmlElement? boldNode = paragraphLineStyle.getElement(xmlBoldNode);
       final xml.XmlElement? strikeNode = paragraphLineStyle.getElement(xmlStrikethroughNode);
+      // script
+      final xml.XmlElement? scriptNode = paragraphLineStyle.getElement(xmlScriptNode);
+      final String? scriptValue = scriptNode?.getAttribute('w:val');
       final String? highlightColor =
           paragraphLineStyle.getElement(xmlHighlightCharacterColorNode)?.getAttribute('w:val');
-      if (italicNode != null) {
+      final String? sizeAttr = sizeNode?.getAttribute('w:val');
+      if (italicNode != null && italicNode.localName == 'i') {
         styleAttrs['inline']?['italic'] = true;
       }
-      if (underlineNode != null) {
+      if (underlineNode != null && underlineNode.localName == 'u') {
         styleAttrs['inline']?['underline'] = true;
       }
-      if (boldNode != null) {
+      if (boldNode != null && boldNode.localName == 'u') {
         styleAttrs['inline']?['bold'] = true;
       }
       if (strikeNode != null) {
-        styleAttrs['inline']?['strikethrough'] = true;
+        if (strikeNode.getAttribute('w:val') == null) {
+          styleAttrs['inline']?['strikethrough'] = true;
+        }
+      }
+      if (scriptValue != null) {
+        if (scriptValue != 'baseline') {
+          styleAttrs['inline']?['script'] = scriptValue;
+        }
       }
       if (family != null) {
-        styleAttrs['inline']?['font'] = family;
+        final bool acceptFamily = context.acceptFontValueWhen?.call(fontFamilyNode!, family) ?? true;
+        if (acceptFamily) {
+          styleAttrs['inline']?['font'] = family;
+        }
       }
       if (color != null) {
-        styleAttrs['inline']?['color'] = color;
+        final bool shouldAcceptColor = context.checkColor!.call(color);
+        if (!shouldAcceptColor && !context.ignoreColorWhenNoSupported) {
+          throw Exception(
+            'The color with the value: $color is not supported currently. '
+            'You could consider use checkColor() param from the context',
+          );
+        }
+        if (shouldAcceptColor) {
+          if (context.colorBuilder == null) {
+            styleAttrs['inline']?['color'] = color.startsWith('#') ? color : '#$color'.toUpperCase();
+          } else if (context.colorBuilder != null) {
+            final String? newColorV = context.colorBuilder!.call(color);
+            if (newColorV != null && newColorV.trim().isNotEmpty) {
+              styleAttrs['inline']?['color'] =
+                  newColorV.startsWith('#') ? newColorV.toUpperCase() : '#$newColorV'.toUpperCase();
+            }
+          }
+        }
       }
       if (highlightColor != null) {
         styleAttrs['inline']?['color'] = highlightColor;
       }
       if (backgroundColor != null) {
-        styleAttrs['inline']?['background'] = backgroundColor;
+        final bool shouldAcceptColor =
+            context.checkColor?.call(backgroundColor) ?? isValidColor(backgroundColor.toUpperCase());
+        if (!shouldAcceptColor && !context.ignoreColorWhenNoSupported) {
+          throw Exception(
+            'The color with the value: $backgroundColor is not supported currently. '
+            'You could consider use checkColor() param from the options',
+          );
+        }
+        if (shouldAcceptColor) {
+          if (context.colorBuilder == null) {
+            styleAttrs['inline']?['background'] = backgroundColor.startsWith('#')
+                ? backgroundColor.toUpperCase()
+                : '#$backgroundColor'.toUpperCase();
+          } else if (context.colorBuilder != null) {
+            final String? newColorV = context.colorBuilder?.call(backgroundColor);
+            if (newColorV != null && newColorV.trim().isNotEmpty) {
+              styleAttrs['inline']?['background'] =
+                  newColorV.startsWith('#') ? newColorV.toUpperCase() : '#$newColorV'.toUpperCase();
+            }
+          }
+        }
       }
-      if (sizeNode != null) {
-        final int? possibleLevel = context.shouldParserSizeToHeading!(sizeNode);
-        if (possibleLevel != null) {
-          styleAttrs['block']?['header'] = '$possibleLevel';
-        } else {
-          styleAttrs['inline']?['size'] = sizeNode;
+      if (sizeAttr != null) {
+        bool acceptSize = true;
+        final String size = sizeAttr.toString();
+        if (context.acceptSizeValueWhen != null) {
+          acceptSize = context.acceptSizeValueWhen?.call(sizeNode!, size) ?? acceptSize;
+        }
+        if (acceptSize) {
+          final int? possibleLevel = context.shouldParserSizeToHeading!(sizeAttr);
+          if (possibleLevel != null) {
+            styleAttrs['block']?['header'] = '$possibleLevel';
+          } else {
+            styleAttrs['inline']?['size'] = sizeNode;
+          }
         }
       }
     }
     if (paragraphStyle != null) {
-      xml.XmlElement? listNode = paragraphStyle.getElement(xmlListNode);
-      xml.XmlElement? indentNode = paragraphStyle.getElement(xmlIndentNode);
-      xml.XmlElement? tabIndentNode = paragraphStyle.getElement(xmlTabNode);
-      xml.XmlElement? alignNode = paragraphStyle.getElement(xmlAlignmentNode);
-      xml.XmlElement? spacingNode = paragraphStyle.getElement(xmlSpacingNode);
+      final xml.XmlElement? listNode = paragraphStyle.getElement(xmlListNode);
+      final xml.XmlElement? indentNode = paragraphStyle.getElement(xmlIndentNode);
+      final xml.XmlElement? tabIndentNode = paragraphStyle.getElement(xmlTabNode);
+      final xml.XmlElement? alignNode = paragraphStyle.getElement(xmlAlignmentNode);
+      final xml.XmlElement? spacingNode = paragraphStyle.getElement(xmlSpacingNode);
 
       if (listNode != null) {
         final String? codeNum = listNode.getElement(xmlListTypeNode)?.getAttribute('w:val');
@@ -92,71 +155,72 @@ List<Style> convertXmlStylesToStyles(
           styleAttrs['block']?['list'] = codeNum == '2' ? 'bullet' : 'ordered';
         }
         if (numberIndentLevel != null) {
-          final int? indent = int.tryParse(numberIndentLevel);
-          if (indent != null && indent > 0) {
+          final int indent = int.tryParse(numberIndentLevel.isEmpty ? '0' : numberIndentLevel) ?? 0;
+          if (indent > 0) {
             styleAttrs['block']?['indent'] = indent;
           }
         }
       }
 
       if (alignNode != null) {
-        final String? value = alignNode.getAttribute('w:val');
-        if (value != null) {
-          styleAttrs['block']?['align'] = value;
+        final String? align = alignNode.getAttribute('w:val');
+        if (align != null) {
+          // we add "both", because option, because in docx documents, "both" align is equivalent to justify alignment
+          assert(
+              align.isAlignStr,
+              'Quill Delta only supports: right, left, center and justify alignments. '
+              'The value of type: "$align" is not supported');
+          styleAttrs['block']?['align'] = align.toFixedAlignStr();
         }
       }
 
-      if (indentNode != null) {
-        TabDirection direction = TabDirection.ltr;
-        final String? rawLeftIndent = indentNode.getAttribute('w:left');
-        final String? rawRightIndent = indentNode.getAttribute('w:right');
-        if (rawRightIndent != null) {
-          direction = TabDirection.rtl;
-        }
-        final indent = rawLeftIndent ?? rawRightIndent;
-        if (indent != null) {
-          final double rawCurrentIndent = double.parse(indent);
-          // if the indent is 720 or similar, then will make a division and get correct value
-          // for the indent
-          //
-          // like: 709 / 708 => 1.x
-          // or like: 1.418 / 708 => 2.xx
-          int indentValue = (rawCurrentIndent / context.defaultTabStop).truncate();
-          if (indentValue > 0) {
-            // we need to ensure that the indent must be into the range of 1 to 5
-            styleAttrs['block']?['indent'] = indentValue.clamp(
-              1,
-              5,
-            );
-            if (direction != TabDirection.ltr) {
-              styleAttrs['block']?['direction'] = 'rtl';
+      if (computeIndents) {
+        if (indentNode != null) {
+          TabDirection direction = TabDirection.ltr;
+          final String? rawLeftIndent = indentNode.getAttribute('w:left');
+          final String? rawRightIndent = indentNode.getAttribute('w:right');
+          if (rawRightIndent != null) {
+            direction = TabDirection.rtl;
+          }
+          final String? indent = rawLeftIndent ?? rawRightIndent;
+          if (indent != null) {
+            final double rawCurrentIndent = double.parse(indent);
+            // if the indent is 720 or similar, then will make a division and get correct value
+            // for the indent
+            //
+            // like: 709 / 708 => 1.x
+            // or like: 1.418 / 708 => 2.xx
+            final int indentValue = (rawCurrentIndent / context.defaultTabStop).truncate();
+            if (indentValue.floor() > 0) {
+              // we need to ensure that the indent must be into the range of 1 to 5
+              styleAttrs['block']?['indent'] = indentValue.floor();
+              if (direction != TabDirection.ltr) {
+                styleAttrs['block']?['direction'] = 'rtl';
+              }
             }
           }
         }
-      }
-      if (tabIndentNode != null) {
-        TabDirection direction = TabDirection.ltr;
-        final String? rawDirectionValue = tabIndentNode.getAttribute('w:val');
-        final String? rawTabStop = tabIndentNode.getAttribute('w:pos');
-        if (rawTabStop != null) {
-          if (rawDirectionValue != null && rawDirectionValue != 'left') {
-            direction = rawDirectionValue == 'right' ? TabDirection.rtl : TabDirection.ltr;
-          }
-          final double tabStop = double.parse(rawTabStop);
-          // if the tabStop is 720, then will make a division and get correct value
-          // for the indent
-          //
-          // like: 720 / 720 => 1
-          // or like: 1.440 / 720 => 2
-          int indentValue = (tabStop / context.defaultTabStop).truncate();
-          if (indentValue > 0) {
-            // we need to ensure that the indent must be into the range of 1 to 5
-            styleAttrs['block']?['indent'] = indentValue.clamp(
-              1,
-              5,
-            );
-            if (direction != TabDirection.ltr) {
-              styleAttrs['block']?['direction'] = 'rtl';
+        if (tabIndentNode != null) {
+          TabDirection direction = TabDirection.ltr;
+          final String? rawDirectionValue = tabIndentNode.getAttribute('w:val');
+          final String? rawTabStop = tabIndentNode.getAttribute('w:pos');
+          if (rawTabStop != null) {
+            if (rawDirectionValue != null && rawDirectionValue != 'left') {
+              direction = rawDirectionValue == 'right' ? TabDirection.rtl : TabDirection.ltr;
+            }
+            final double tabStop = double.parse(rawTabStop);
+            // if the tabStop is 720, then will make a division and get correct value
+            // for the indent
+            //
+            // like: 720 / 720 => 1
+            // or like: 1.440 / 720 => 2
+            final int indentValue = (tabStop / context.defaultTabStop).truncate();
+            if (indentValue.floor() > 0) {
+              // we need to ensure that the indent must be into the range of 1 to 5
+              styleAttrs['block']?['indent'] = indentValue.floor();
+              if (direction != TabDirection.ltr) {
+                styleAttrs['block']?['direction'] = 'rtl';
+              }
             }
           }
         }
@@ -168,9 +232,9 @@ List<Style> convertXmlStylesToStyles(
         } else {
           final double? rawLine = double.tryParse(spacingNode.getAttribute('w:line') ?? '');
           if (rawLine != null) {
-            final double effectiveSpacing = rawLine / kDefaultSpacing1; 
-            if(effectiveSpacing > 0) {
-              styleAttrs['block']?['line-height'] = effectiveSpacing; 
+            final double effectiveSpacing = rawLine / kDefaultSpacing1;
+            if (effectiveSpacing > 0) {
+              styleAttrs['block']?['line-height'] = effectiveSpacing;
             }
           }
         }
@@ -194,7 +258,7 @@ List<Style> convertXmlStylesToStyles(
         SubStyles(
           propertyName: node.name.local,
           value: null,
-          extraInfo: attributes.isNotEmpty ? {...attributes} : null,
+          extraInfo: attributes.isNotEmpty ? <String, dynamic>{...attributes} : null,
         ),
       );
       attributes.clear();
@@ -219,13 +283,25 @@ List<Style> convertXmlStylesToStyles(
 }
 
 class ConverterFromXmlContext {
-  ParseSizeToHeadingCallback? shouldParserSizeToHeading;
-  ParseXmlSpacingCallback? parseXmlSpacing;
-  final double defaultTabStop;
-
   ConverterFromXmlContext({
+    required this.ignoreColorWhenNoSupported,
+    required this.defaultTabStop,
+    this.acceptFontValueWhen,
+    this.acceptSizeValueWhen,
+    this.acceptSpacingValueWhen,
     this.shouldParserSizeToHeading,
     this.parseXmlSpacing,
-    required this.defaultTabStop,
+    this.colorBuilder,
+    this.checkColor,
   });
+
+  ParseSizeToHeadingCallback? shouldParserSizeToHeading;
+  ParseXmlSpacingCallback? parseXmlSpacing;
+  bool Function(String? hex)? checkColor;
+  final Predicate<String>? acceptFontValueWhen;
+  final Predicate<String>? acceptSizeValueWhen;
+  final Predicate<int>? acceptSpacingValueWhen;
+  final bool ignoreColorWhenNoSupported;
+  final String? Function(String? hex)? colorBuilder;
+  final double defaultTabStop;
 }

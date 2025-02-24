@@ -3,24 +3,15 @@ String paragraphStyles(ParagraphStyleSheet styles) =>
 
 /// Represents the styles used into the editor
 class ParagraphStyleSheet {
-  final ParagraphInlineStyleSheet inlineStyles;
-  final ParagraphBlockStyleSheet blockStyles;
-
   ParagraphStyleSheet({
     required this.blockStyles,
     required this.inlineStyles,
   });
+  final ParagraphInlineStyleSheet inlineStyles;
+  final ParagraphBlockStyleSheet blockStyles;
 }
 
 class ParagraphInlineStyleSheet {
-  final bool bold;
-  final bool italic;
-  final bool underline;
-  final bool ligatures;
-  final String fontFamily;
-  final String lang;
-  final int fontSize;
-
   ParagraphInlineStyleSheet({
     required this.bold,
     required this.italic,
@@ -42,15 +33,20 @@ class ParagraphInlineStyleSheet {
       lang: 'en-ES',
     );
   }
+  final bool bold;
+  final bool italic;
+  final bool underline;
+  final bool ligatures;
+  final String fontFamily;
+  final String lang;
+  final int fontSize;
 }
 
 class ParagraphBlockStyleSheet {
-  final String? alignment;
-  final List<int> spacing;
-
   ParagraphBlockStyleSheet({
-    this.spacing = const [],
+    this.spacing,
     this.alignment,
-  }) : assert(spacing.isEmpty || spacing.length == 2,
-            'spacing style must contains two values: first is for "before" and last is for "after"');
+  });
+  final String? alignment;
+  final int? spacing;
 }
