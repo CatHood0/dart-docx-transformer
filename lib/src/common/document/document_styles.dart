@@ -80,6 +80,7 @@ class DocumentStylesSheet {
   }
 }
 
+//TODO: rework on this to be more easy to create sub part of a style (like adding spacing nodes and etc)
 class SubStyles {
   SubStyles({
     required this.propertyName,

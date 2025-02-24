@@ -10,6 +10,7 @@ import '../../common/generators/convert_xml_styles_to_doc.dart';
 import '../../common/internals_vars.dart';
 import '../../common/schemas/common_node_keys/word_files_common.dart';
 import '../../common/schemas/common_node_keys/xml_keys.dart';
+import '../../constants.dart';
 
 class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions> {
   DeltaFromDocxParser({
@@ -88,6 +89,7 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
         documentRelations[id] = target;
       },
     );
+
     final DocumentStylesSheet docStyles = DocumentStylesSheet.fromStyles(
       styles!,
       ConverterFromXmlContext(
@@ -276,7 +278,7 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
             final Uint8List bytes = rawMedia[effectivePath] as Uint8List;
             // transform the image to something that can be inserted in a Delta
             final String? url =
-                await options.onDetectImage.call(bytes, imagePath.replaceFirst(RegExp(r'.*\/'), ''));
+                await options.onDetectImage.call(bytes, imagePath.replaceFirst(imageNamePattern, ''));
             if (url != null) {
               assert(url.isNotEmpty, 'url/path of the image(path: $effectivePath) cannot be empty');
               delta.insert(<String, Object>{'image': url});

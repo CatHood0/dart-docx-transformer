@@ -18,6 +18,8 @@ const double kDefaultSpacing1 = 240;
 const double kDefaultSpacing15 = 360;
 const double kDefaultSpacing2 = 400;
 
+final RegExp imageNamePattern = RegExp(r'.*\/');
+
 const String defaultFont = 'Times New Roman';
 const int defaultFontSize = 22;
 const String defaultLang = 'en-US';

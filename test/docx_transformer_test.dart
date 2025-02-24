@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test('minimal test', () async {
-    final File file = File('test_resources/path.docx');
+    final File file = File('test_resources/Documento.docx');
     final DeltaFromDocxParser parser = DeltaFromDocxParser(
       data: await file.readAsBytes(),
       options: DeltaParserOptions(
