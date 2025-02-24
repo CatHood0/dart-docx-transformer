@@ -6,16 +6,13 @@ import '../common/color.dart';
 import '../common/extensions/string_ext.dart';
 import '../common/internals_vars.dart';
 import '../common/schemas/common_node_keys/xml_keys.dart';
-import '../common/tab_direction.dart';
 import '../constants.dart';
 
 abstract class Parser<T, R, O extends ParserOptions> {
   Parser({
     required this.data,
     required this.options,
-    this.to = ParseTo.docx,
   });
-  final ParseTo to;
   final T data;
   final O options;
 
@@ -52,13 +49,8 @@ abstract class Parser<T, R, O extends ParserOptions> {
     final bool containsSpacing = spacingNode != null;
     final bool containsBorder = borderNode != null;
     if (containsTabNode) {
-      TabDirection direction = TabDirection.ltr;
-      final String? rawDirectionValue = tabNode.getAttribute('w:val');
       final String? rawTabStop = tabNode.getAttribute('w:pos');
       if (rawTabStop != null) {
-        if (rawDirectionValue != null && rawDirectionValue != 'left') {
-          direction = rawDirectionValue == 'right' ? TabDirection.rtl : TabDirection.ltr;
-        }
         final double tabStop = double.parse(rawTabStop);
         // if the tabStop is 720, then will make a division and get correct value
         // for the indent
@@ -71,20 +63,13 @@ abstract class Parser<T, R, O extends ParserOptions> {
           if (shouldAcceptSpacing) {
             // we need to ensure that the indent must be into the range of 1 to 5
             blockAttributes['indent'] = indentValue.floor();
-            if (direction != TabDirection.ltr) {
-              blockAttributes['direction'] = 'rtl';
-            }
           }
         }
       }
     }
     if (!containsTabNode && containsIndentNode) {
-      TabDirection direction = TabDirection.ltr;
       final String? rawLeftIndent = indentNode.getAttribute('w:left');
       final String? rawRightIndent = indentNode.getAttribute('w:right');
-      if (rawRightIndent != null) {
-        direction = TabDirection.rtl;
-      }
       final String? indent = rawLeftIndent ?? rawRightIndent;
       if (indent != null) {
         final double rawCurrentIndent = double.parse(indent);
@@ -98,9 +83,6 @@ abstract class Parser<T, R, O extends ParserOptions> {
           final bool shouldAcceptSpacing = options.acceptSpacingValueWhen?.call(tabNode!, indentValue) ?? true;
           if (shouldAcceptSpacing) {
             blockAttributes['indent'] = indentValue.floor();
-            if (direction != TabDirection.ltr) {
-              blockAttributes['direction'] = 'rtl';
-            }
           }
         }
       }
@@ -216,7 +198,11 @@ abstract class Parser<T, R, O extends ParserOptions> {
     // nodes values
     final String? sizeAttr =
         fontSizeNode?.getAttribute(xmlSizeFontNode) ?? fontSizeNode?.getAttribute(xmlSizeCsFontNode);
-    final String? familyAttr = fontFamilyNode?.getAttribute('asciiTheme');
+    final String? familyAttr = fontFamilyNode?.getAttribute('w:ascii') ??
+        fontFamilyNode?.getAttribute('w:hAnsi') ??
+        fontFamilyNode?.getAttribute('w:cs') ??
+        fontFamilyNode?.getAttribute('w:asciiTheme') ??
+        fontFamilyNode?.getElement('w:hAnsiTheme') as String?;
     final String? color = colorNode?.getAttribute('w:val');
     final String? backgroundColor = backgroundColorNode?.getAttribute('w:val');
     final String? scriptValue = scriptNode?.getAttribute('w:val');
@@ -239,7 +225,10 @@ abstract class Parser<T, R, O extends ParserOptions> {
           size = options.transformSizeValueTo!(sizeAttr);
         }
         if (size.isNotEmpty) {
-          inlineAttributes['size'] = size;
+          final int? numSize = int.tryParse(size);
+          if(numSize != null) {
+            inlineAttributes['size'] = numSize;
+          }
         }
       }
     }

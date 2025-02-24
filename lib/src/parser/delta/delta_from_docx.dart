@@ -16,7 +16,6 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
   DeltaFromDocxParser({
     required super.data,
     required super.options,
-    super.to,
   });
 
   ZipDecoder? _zipDecoder;

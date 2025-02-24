@@ -9,7 +9,6 @@ class DeltaToDocx extends Parser<Delta, Future<Uint8List?>?, DocxParserOptions> 
   DeltaToDocx({
     required super.data,
     required super.options,
-    super.to,
   }) : assert(data.isEmpty, 'The Delta passed cannot be empty');
 
   // we will transform all to a encoded file and returned as bytes to be
