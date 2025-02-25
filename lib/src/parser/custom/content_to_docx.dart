@@ -52,7 +52,6 @@ class ContentToDocx extends Parser<ContentContainer, Uint8List?, BasicParserOpti
     );
     final String content = generateDocumentXml(defaultProperties, docStr);
     final xml.XmlDocument docNode = xml.XmlDocument.parse(content);
-
     final EditorProperties editorProperties = defaultEditorProperties(content: data.toString());
 
     final ArchiveFile document = ArchiveFile.string('word/document.xml', docNode.toXmlString());

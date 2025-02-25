@@ -77,7 +77,7 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
       throw StateError("$documentFilePath couldn't be founded into the File passed");
     }
 
-    print(document.toXmlString(pretty: true));
+    //print(document.toXmlString(pretty: true));
 
     _buildTabMultiplierIfNeeded(settings);
 

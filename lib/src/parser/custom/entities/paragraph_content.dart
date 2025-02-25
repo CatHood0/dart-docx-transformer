@@ -12,17 +12,14 @@ class ParagraphContent extends Content<Iterable<Content>> {
 
   @override
   String buildXml({required DocumentContext context}) {
-    return '''
-    <w:p>
-        ${buildXmlStyle(context: context)}
-        ${data.map((Content e) {
-        context.currentContentPart = e;
-        return e.buildXml(
-         context: context,
-        );
-      })}
-    </w:p>
-    ''';
+    final String style = buildXmlStyle(context: context);
+    final String runs = data.map((Content e) {
+      context.currentContentPart = e;
+      return e.buildXml(
+        context: context,
+      );
+    }).join('\n');
+    return '<w:p>$style\n$runs</w:p>';
   }
 
   @override

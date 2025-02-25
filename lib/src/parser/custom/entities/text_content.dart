@@ -2,7 +2,7 @@ import '../attributes/attribute.dart';
 import 'base/content.dart';
 import 'base/document_context.dart';
 
-const String _kDefaultEmptyRun = '<w:r><w:t xml="preserved-whitespace"></w:r>';
+const String _kDefaultEmptyRun = '<w:r><w:t xml:space="preserved"></w:t></w:r>';
 
 class TextContent extends Content<TextPart> {
   TextContent({
@@ -12,14 +12,12 @@ class TextContent extends Content<TextPart> {
 
   @override
   String buildXml({required DocumentContext context}) {
-    final String xml = buildXmlStyle(context: context);
-    final String style = xml.isEmpty ? '' : '$xml\n';
-    final List<String> texts = data.text.split(' ');
-    return '''
-      ${texts.map((String element) {
-      return '''\n<w:r>$style<w:t xml:space="preserve">$element</w:t>\n</w:r>''';
-    }).join('\n$_kDefaultEmptyRun')}
-    ''';
+    final String style = buildXmlStyle(context: context);
+    final List<String> texts = data.text.split(RegExp(r'\s'));
+    final String text = texts.map((String element) {
+      return '''\n<w:r>$style\n<w:t xml:space="preserve">$element</w:t>\n</w:r>''';
+    }).join('\n$_kDefaultEmptyRun');
+    return text;
   }
 
   @override
@@ -32,11 +30,7 @@ class TextContent extends Content<TextPart> {
     }
     final Iterable<String> xmlStyles = styles.map((Attribute e) => e.toXmlString());
     if (xmlStyles.isEmpty) return '';
-    return '''
-     <w:rPr>
-      ${xmlStyles.join('$_whitespaces\n')},
-     <w:rPr>
-    ''';
+    return '<w:rPr>${xmlStyles.join('$_whitespaces\n')}</w:rPr>';
   }
 
   final String _whitespaces = '      ';
@@ -54,7 +48,7 @@ class TextContent extends Content<TextPart> {
 class TextPart {
   TextPart({
     required this.text,
-    required this.styles,
+    this.styles = const <Attribute>[],
   });
 
   final String text;

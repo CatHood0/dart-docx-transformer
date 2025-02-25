@@ -122,7 +122,7 @@ class BoldAttribute extends Attribute<bool> {
 
   @override
   String toXmlString() {
-    throw UnimplementedError();
+    return '<w:b />';
   }
 }
 
