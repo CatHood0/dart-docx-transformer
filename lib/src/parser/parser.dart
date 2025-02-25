@@ -16,6 +16,7 @@ abstract class Parser<T, R, O extends ParserOptions> {
 
   R build({required T data});
 
+  @protected
   void buildRelations(
     xml.XmlDocument? documentRels, {
     required void Function(String, String, String) objectBuilder,

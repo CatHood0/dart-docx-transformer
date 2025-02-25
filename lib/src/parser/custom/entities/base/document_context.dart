@@ -5,12 +5,10 @@ import 'content.dart';
 
 class DocumentContext {
   DocumentContext({
-    required this.document,
     required this.styles,
     required Map<String, MediaData> media,
   }) : _media = <String, MediaData>{...media};
 
-  final XmlDocument document;
   final DocumentStylesSheet styles;
   // all the media are saved
   // {filename: rid}

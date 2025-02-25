@@ -17,29 +17,7 @@ import '../../common/schemas/files/docx/themes.dart';
 import '../../common/schemas/files/docx/web_settings.dart';
 import '../../constants.dart';
 
-class Options extends ParserOptions {
-  Options({
-    required super.onDetectImage,
-    required this.title,
-    this.subject = '',
-    this.owner = '',
-    this.description = '',
-    this.lastModifiedBy = '',
-    this.keywords = const <String>[],
-    this.revisions = 1,
-    this.properties,
-  }) : super(ignoreColorWhenNoSupported: false);
-  final String title;
-  final String owner;
-  final String subject;
-  final String description;
-  final String lastModifiedBy;
-  final List<String> keywords;
-  final int revisions;
-  final DocumentProperties? properties;
-}
-
-class PlainTextToDocx extends Parser<String, Future<Uint8List?>, Options> {
+class PlainTextToDocx extends Parser<String, Future<Uint8List?>, BasicParserOptions> {
   PlainTextToDocx({
     required super.options,
   });

@@ -8,6 +8,28 @@ enum ParseTo {
   docx,
 }
 
+class BasicParserOptions extends ParserOptions {
+  BasicParserOptions({
+    required super.onDetectImage,
+    required this.title,
+    this.subject = '',
+    this.owner = '',
+    this.description = '',
+    this.lastModifiedBy = '',
+    this.keywords = const <String>[],
+    this.revisions = 1,
+    this.properties,
+  }) : super(ignoreColorWhenNoSupported: false);
+  final String title;
+  final String owner;
+  final String subject;
+  final String description;
+  final String lastModifiedBy;
+  final List<String> keywords;
+  final int revisions;
+  final DocumentProperties? properties;
+}
+
 abstract class ParserOptions {
   ParserOptions({
     required this.ignoreColorWhenNoSupported,
