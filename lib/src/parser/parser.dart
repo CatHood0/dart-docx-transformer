@@ -3,6 +3,7 @@ import 'package:xml/src/xml/utils/node_list.dart';
 import 'package:xml/xml.dart' as xml;
 import '../../docx_transformer.dart';
 import '../common/color.dart';
+import '../common/extensions/node_to_configurator.dart';
 import '../common/extensions/string_ext.dart';
 import '../common/internals_vars.dart';
 import '../common/schemas/common_node_keys/xml_keys.dart';
@@ -58,7 +59,7 @@ abstract class Parser<T, R, O extends ParserOptions> {
         // or like: 1.440 / 720 => 2
         final int indentValue = (tabStop / kDefaultTabStop).truncate();
         if (indentValue.floor() > 0) {
-          final bool shouldAcceptSpacing = options.acceptSpacingValueWhen?.call(tabNode, indentValue) ?? true;
+          final bool shouldAcceptSpacing = options.acceptSpacingValueWhen?.call(indentValue) ?? true;
           if (shouldAcceptSpacing) {
             // we need to ensure that the indent must be into the range of 1 to 5
             blockAttributes['indent'] = indentValue.floor();
@@ -79,7 +80,7 @@ abstract class Parser<T, R, O extends ParserOptions> {
         // or like: 1.418 / 708 => 2.xx
         final int indentValue = (rawCurrentIndent / kDefaultTabStop).truncate();
         if (indentValue.floor() > 0) {
-          final bool shouldAcceptSpacing = options.acceptSpacingValueWhen?.call(tabNode!, indentValue) ?? true;
+          final bool shouldAcceptSpacing = options.acceptSpacingValueWhen?.call(indentValue) ?? true;
           if (shouldAcceptSpacing) {
             blockAttributes['indent'] = indentValue.floor();
           }
@@ -125,7 +126,7 @@ abstract class Parser<T, R, O extends ParserOptions> {
       }
     }
     if (containsSpacing) {
-      final int? userParse = options.parseXmlSpacing?.call(spacingNode);
+      final int? userParse = options.parseXmlSpacing?.call(spacingNode.toConfigurator);
       if (userParse != null) {
         blockAttributes['line-height'] = userParse;
       } else {
@@ -196,7 +197,7 @@ abstract class Parser<T, R, O extends ParserOptions> {
             paragraphInlineAttributes?.getElement(xmlBackgroundCharacterColorNode);
     // nodes values
     final String? sizeAttr =
-        fontSizeNode?.getAttribute(xmlSizeFontNode) ?? fontSizeNode?.getAttribute(xmlSizeCsFontNode);
+        fontSizeNode?.getAttribute(xmlSizeFontNode) ?? fontSizeNode?.getAttribute(xmlSizeComplexScriptFontNode);
     final String? familyAttr = fontFamilyNode?.getAttribute('w:ascii') ??
         fontFamilyNode?.getAttribute('w:hAnsi') ??
         fontFamilyNode?.getAttribute('w:cs') ??
@@ -207,7 +208,7 @@ abstract class Parser<T, R, O extends ParserOptions> {
     final String? scriptValue = scriptNode?.getAttribute('w:val');
     // check if we will accept this family
     if (familyAttr != null && fontFamilyNode != null) {
-      final bool acceptFamily = options.acceptFontValueWhen?.call(fontFamilyNode, familyAttr) ?? false;
+      final bool acceptFamily = options.acceptFontValueWhen?.call(familyAttr) ?? false;
       if (acceptFamily) {
         inlineAttributes['font'] = familyAttr;
       }
@@ -216,7 +217,7 @@ abstract class Parser<T, R, O extends ParserOptions> {
       bool acceptSize = !blockAttributes.containsKey('header');
       String size = sizeAttr;
       if (options.acceptSizeValueWhen != null) {
-        acceptSize = options.acceptSizeValueWhen?.call(fontSizeNode!, size) ?? acceptSize;
+        acceptSize = options.acceptSizeValueWhen?.call(size) ?? acceptSize;
       }
       if (acceptSize) {
         // transform if is passed

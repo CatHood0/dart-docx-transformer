@@ -34,7 +34,7 @@ const String xmlProofErrorNode = 'w:proofErr', xmlProofErrorPlaceTypeNode = 'w:t
 const String xmlParagraphInlineAttsrNode = 'w:rPr';
 
 /// text
-const String xmlTextNode = 'w:t', xmlTextPartNode = 'w:r';
+const String xmlTextNode = 'w:t', xmlTextRunNode = 'w:r';
 
 /// <w:r> can be founded internally
 // seems it works as paragraph node
@@ -76,7 +76,7 @@ const String xmlHighlightCharacterColorNode = 'w:highlight'; // w:val="color" > 
 const String xmlBoldNode = 'w:b', xmlBoldCsNode = 'w:bCs';
 // is an autoclosed node (<w:b/> or <w:bCs/>)
 const String xmlItalicNode = 'w:i', xmlItalicCsNode = 'w:iCs';
-const String xmlSizeCsFontNode = 'w:szCs'; // w:val="number"
+const String xmlSizeComplexScriptFontNode = 'w:szCs'; // w:val="number"
 const String xmlLanFontNode = 'w:lang'; // w:val="lan-code"
 
 /// system control tags

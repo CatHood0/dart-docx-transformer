@@ -1,25 +1,22 @@
+import 'package:meta/meta.dart';
 import 'package:xml/xml.dart';
 
+import '../../../../common/generators/hexadecimal_generator.dart';
 import 'document_context.dart';
+import 'parent_content.dart';
 
 abstract class Content<T> {
   Content({
     required this.data,
     this.parent,
-  });
+  }) : id = nanoid(7);
 
-  final XmlNode? parent;
   final T data;
+  final String id;
+  ParentContent? parent;
   Content<T> get copy;
-  String buildXml({required DocumentContext context});
-  String buildXmlStyle({required DocumentContext context});
-  bool canBuildStyles(DocumentContext context) =>
-      buildXmlStyle(context: context).isNotEmpty ||
-      buildXmlStyle(context: context)
-          .replaceAll(
-            '\n',
-            '',
-          )
-          .trim()
-          .isNotEmpty;
+  XmlNode buildXml({required DocumentContext context});
+  List<XmlNode> buildXmlStyle({required DocumentContext context});
+  Content? visitElement(bool Function(Content element) shouldGetElement);
+  String? rId;
 }

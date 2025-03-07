@@ -1,156 +1,182 @@
 import '../document/document_styles.dart';
-import '../generators/styles_creator.dart';
+import '../styles.dart';
 
 final DocumentStylesSheet defaultDocumentStyles = DocumentStylesSheet(
   styles: <Style>[
     Style(
+      type: 'character',
+      styleId: 'Hyperlink',
+      styleName: 'Hyperlink',
+      configurators: <StyleConfigurator>[
+        StyleConfigurator.noAutoClosure(
+          propertyName: 'rPr',
+          configurators: <StyleConfigurator>[
+            StyleConfigurator.autoClosure(propertyName: 'color', value: '0000FF'),
+            StyleConfigurator.autoClosure(propertyName: 'u', value: 'single'),
+          ],
+        ),
+      ],
+    ),
+    Style(
       type: 'paragraph',
       styleId: 'Heading1',
       styleName: 'Heading 1',
-      basedOn: 'Normal',
       configurators: <StyleConfigurator>[
-        StyleConfigurator(
+        StyleConfigurator.autoClosure(
+          propertyName: 'basedOn',
+          value: 'Normal',
+        ),
+        StyleConfigurator.autoClosure(
           propertyName: 'uiPriority',
           value: 9,
           attributes: null,
         ),
-        StyleConfigurator(
+        StyleConfigurator.noAutoClosure(
           propertyName: 'pPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(
+            StyleConfigurator.autoClosure(
               propertyName: 'spacing',
               attributes: <String, dynamic>{'before': 480},
             ),
-            StyleConfigurator(propertyName: 'keepNext'),
-            StyleConfigurator(propertyName: 'keepLines'),
-            StyleConfigurator(propertyName: 'outlineLvl', value: 0),
+            StyleConfigurator.autoClosure(propertyName: 'keepNext'),
+            StyleConfigurator.autoClosure(propertyName: 'keepLines'),
+            StyleConfigurator.autoClosure(propertyName: 'outlineLvl', value: 0),
           ],
         ),
-        StyleConfigurator(
+        StyleConfigurator.noAutoClosure(
           propertyName: 'rPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(propertyName: 'b'),
-            StyleConfigurator(propertyName: 'sz', value: 48),
-            StyleConfigurator(propertyName: 'szCs', value: 48),
+            StyleConfigurator.autoClosure(propertyName: 'b'),
+            StyleConfigurator.autoClosure(propertyName: 'sz', value: 48),
+            StyleConfigurator.autoClosure(propertyName: 'szCs', value: 48),
           ],
         ),
-        StyleConfigurator(propertyName: 'qFormat'),
+        StyleConfigurator.autoClosure(propertyName: 'qFormat'),
       ],
     ),
     Style(
       type: 'paragraph',
       styleId: 'Heading2',
       styleName: 'Heading 2',
-      basedOn: 'Normal',
       configurators: <StyleConfigurator>[
-        StyleConfigurator(
+        StyleConfigurator.autoClosure(
+          propertyName: 'basedOn',
+          value: 'Normal',
+        ),
+        StyleConfigurator.autoClosure(
           propertyName: 'uiPriority',
           value: 9,
           attributes: null,
         ),
-        StyleConfigurator(
+        StyleConfigurator.noAutoClosure(
           propertyName: 'pPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(
+            StyleConfigurator.autoClosure(
               propertyName: 'spacing',
               attributes: <String, dynamic>{
                 'before': 360,
                 'after': 80,
               },
             ),
-            StyleConfigurator(propertyName: 'keepNext'),
-            StyleConfigurator(propertyName: 'keepLines'),
-            StyleConfigurator(propertyName: 'outlineLvl', value: 1),
+            StyleConfigurator.autoClosure(propertyName: 'keepNext'),
+            StyleConfigurator.autoClosure(propertyName: 'keepLines'),
+            StyleConfigurator.autoClosure(propertyName: 'outlineLvl', value: 1),
           ],
         ),
-        StyleConfigurator(
+        StyleConfigurator.noAutoClosure(
           propertyName: 'rPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(propertyName: 'b'),
-            StyleConfigurator(propertyName: 'sz', value: 36),
-            StyleConfigurator(propertyName: 'szCs', value: 36),
+            StyleConfigurator.autoClosure(propertyName: 'b'),
+            StyleConfigurator.autoClosure(propertyName: 'sz', value: 36),
+            StyleConfigurator.autoClosure(propertyName: 'szCs', value: 36),
           ],
         ),
-        StyleConfigurator(propertyName: 'qFormat'),
-        StyleConfigurator(propertyName: 'unhideWhenUsed'),
+        StyleConfigurator.autoClosure(propertyName: 'qFormat'),
+        StyleConfigurator.autoClosure(propertyName: 'unhideWhenUsed'),
       ],
     ),
     Style(
       type: 'paragraph',
       styleId: 'Heading3',
       styleName: 'Heading 3',
-      basedOn: 'Normal',
       configurators: <StyleConfigurator>[
-        StyleConfigurator(
+        StyleConfigurator.autoClosure(
+          propertyName: 'basedOn',
+          value: 'Normal',
+        ),
+        StyleConfigurator.autoClosure(
           propertyName: 'uiPriority',
           value: 9,
           attributes: null,
         ),
-        StyleConfigurator(propertyName: 'next', value: 'Normal'),
-        StyleConfigurator(
+        StyleConfigurator.autoClosure(propertyName: 'next', value: 'Normal'),
+        StyleConfigurator.noAutoClosure(
           propertyName: 'pPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(
+            StyleConfigurator.autoClosure(
               propertyName: 'spacing',
               attributes: <String, dynamic>{
                 'before': 280,
                 'after': 80,
               },
             ),
-            StyleConfigurator(propertyName: 'keepNext'),
-            StyleConfigurator(propertyName: 'keepLines'),
-            StyleConfigurator(propertyName: 'outlineLvl', value: 2),
+            StyleConfigurator.autoClosure(propertyName: 'keepNext'),
+            StyleConfigurator.autoClosure(propertyName: 'keepLines'),
+            StyleConfigurator.autoClosure(propertyName: 'outlineLvl', value: 2),
           ],
         ),
-        StyleConfigurator(
+        StyleConfigurator.noAutoClosure(
           propertyName: 'rPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(propertyName: 'b'),
-            StyleConfigurator(propertyName: 'sz', value: 28),
-            StyleConfigurator(propertyName: 'szCs', value: 28),
+            StyleConfigurator.autoClosure(propertyName: 'b'),
+            StyleConfigurator.autoClosure(propertyName: 'sz', value: 28),
+            StyleConfigurator.autoClosure(propertyName: 'szCs', value: 28),
           ],
         ),
-        StyleConfigurator(propertyName: 'qFormat'),
-        StyleConfigurator(propertyName: 'semiHidden'),
-        StyleConfigurator(propertyName: 'unhideWhenUsed'),
+        StyleConfigurator.autoClosure(propertyName: 'qFormat'),
+        StyleConfigurator.autoClosure(propertyName: 'semiHidden'),
+        StyleConfigurator.autoClosure(propertyName: 'unhideWhenUsed'),
       ],
     ),
     Style(
       type: 'paragraph',
       styleId: 'Heading4',
       styleName: 'Heading 4',
-      basedOn: 'Normal',
       configurators: <StyleConfigurator>[
-        StyleConfigurator(
+        StyleConfigurator.autoClosure(
+          propertyName: 'basedOn',
+          value: 'Normal',
+        ),
+        StyleConfigurator.autoClosure(
           propertyName: 'uiPriority',
           value: 9,
           attributes: null,
         ),
-        StyleConfigurator(propertyName: 'next', value: 'Normal'),
-        StyleConfigurator(propertyName: 'unhideWhenUsed'),
-        StyleConfigurator(propertyName: 'semiHidden'),
-        StyleConfigurator(propertyName: 'qFormat'),
-        StyleConfigurator(
+        StyleConfigurator.autoClosure(propertyName: 'next', value: 'Normal'),
+        StyleConfigurator.autoClosure(propertyName: 'unhideWhenUsed'),
+        StyleConfigurator.autoClosure(propertyName: 'semiHidden'),
+        StyleConfigurator.autoClosure(propertyName: 'qFormat'),
+        StyleConfigurator.noAutoClosure(
           propertyName: 'pPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(
+            StyleConfigurator.autoClosure(
               propertyName: 'spacing',
               attributes: <String, dynamic>{
                 'before': 220,
                 'after': 40,
               },
             ),
-            StyleConfigurator(propertyName: 'keepNext'),
-            StyleConfigurator(propertyName: 'keepLines'),
-            StyleConfigurator(propertyName: 'outlineLvl', value: 3),
+            StyleConfigurator.autoClosure(propertyName: 'keepNext'),
+            StyleConfigurator.autoClosure(propertyName: 'keepLines'),
+            StyleConfigurator.autoClosure(propertyName: 'outlineLvl', value: 3),
           ],
         ),
-        StyleConfigurator(
+        StyleConfigurator.noAutoClosure(
           propertyName: 'rPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(propertyName: 'b'),
-            StyleConfigurator(propertyName: 'sz', value: 24),
-            StyleConfigurator(propertyName: 'szCs', value: 24),
+            StyleConfigurator.autoClosure(propertyName: 'b'),
+            StyleConfigurator.autoClosure(propertyName: 'sz', value: 24),
+            StyleConfigurator.autoClosure(propertyName: 'szCs', value: 24),
           ],
         ),
       ],
@@ -159,45 +185,44 @@ final DocumentStylesSheet defaultDocumentStyles = DocumentStylesSheet(
       type: 'paragraph',
       styleId: 'Heading5',
       styleName: 'Heading 5',
-      basedOn: 'Normal',
       configurators: <StyleConfigurator>[
-        StyleConfigurator(
+        StyleConfigurator.autoClosure(
+          propertyName: 'basedOn',
+          value: 'Normal',
+        ),
+        StyleConfigurator.autoClosure(
           propertyName: 'uiPriority',
           value: 9,
           attributes: null,
         ),
-        StyleConfigurator(propertyName: 'next', value: 'Normal'),
-        StyleConfigurator(propertyName: 'unhideWhenUsed'),
-        StyleConfigurator(propertyName: 'semiHidden'),
-        StyleConfigurator(propertyName: 'qFormat'),
-        StyleConfigurator(
+        StyleConfigurator.autoClosure(propertyName: 'next', value: 'Normal'),
+        StyleConfigurator.autoClosure(propertyName: 'unhideWhenUsed'),
+        StyleConfigurator.autoClosure(propertyName: 'semiHidden'),
+        StyleConfigurator.autoClosure(propertyName: 'qFormat'),
+        StyleConfigurator.noAutoClosure(
           propertyName: 'pPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(
+            StyleConfigurator.autoClosure(
               propertyName: 'spacing',
               attributes: <String, dynamic>{
                 'before': 200,
                 'after': 40,
               },
             ),
-            StyleConfigurator(propertyName: 'keepNext'),
-            StyleConfigurator(propertyName: 'keepLines'),
-            StyleConfigurator(propertyName: 'outlineLvl', value: 4),
+            StyleConfigurator.autoClosure(propertyName: 'keepNext'),
+            StyleConfigurator.autoClosure(propertyName: 'keepLines'),
+            StyleConfigurator.autoClosure(propertyName: 'outlineLvl', value: 4),
           ],
         ),
-        StyleConfigurator(
+        StyleConfigurator.noAutoClosure(
           propertyName: 'rPr',
           configurators: <StyleConfigurator>[
-            StyleConfigurator(propertyName: 'b'),
-            StyleConfigurator(propertyName: 'sz', value: 20),
-            StyleConfigurator(propertyName: 'szCs', value: 20),
+            StyleConfigurator.autoClosure(propertyName: 'b'),
+            StyleConfigurator.autoClosure(propertyName: 'sz', value: 20),
+            StyleConfigurator.autoClosure(propertyName: 'szCs', value: 20),
           ],
         ),
       ],
     ),
   ],
-  paragraphStyleSheet: ParagraphStyleSheet(
-    blockStyles: ParagraphBlockStyleSheet(),
-    inlineStyles: ParagraphInlineStyleSheet.defaultStyle(),
-  ),
 );

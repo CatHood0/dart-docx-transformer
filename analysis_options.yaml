@@ -1,15 +1,11 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
-  language:
-    strict-casts: false 
-    strict-inference: false 
-    strict-raw-types: false 
 
 linter:
   rules:
     valid_regexps: true
-    always_specify_types: true
+    always_specify_types: false 
     always_declare_return_types: true
     always_put_required_named_parameters_first: true
     annotate_overrides: true

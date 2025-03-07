@@ -5,6 +5,7 @@ String generateContentTypesXml() => '''
         <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
         <Default Extension="jpeg" ContentType="image/jpeg"/>
         <Default Extension="png" ContentType="image/png"/>
+        <Default Extension="jpg" ContentType="image/jpg"/>
         <Default Extension="xml" ContentType="application/xml"/>
         <Override PartName="/_rels/.rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
         <Override PartName="/word/_rels/document.xml.rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>

@@ -1,6 +1,8 @@
+import 'package:xml/xml.dart';
+import '../utils/constants.dart';
 import 'attribute.dart';
 
-class BackgroundTextColorAttribute extends Attribute<String?> {
+class BackgroundTextColorAttribute extends NodeAttribute<String?> {
   BackgroundTextColorAttribute(String? value)
       : super(
           key: 'background-color',
@@ -12,9 +14,20 @@ class BackgroundTextColorAttribute extends Attribute<String?> {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    if (value == null || value!.isEmpty) return null;
+    return XmlElement.tag(
+      'w:shd',
+      attributes: [
+        XmlAttribute(XmlName.fromString('w:val'), value ?? noColor),
+      ],
+    );
+  }
 }
 
-class ForegroundTextColorAttribute extends Attribute<String?> {
+class ForegroundTextColorAttribute extends NodeAttribute<String?> {
   ForegroundTextColorAttribute(String? value)
       : super(
           key: 'text-color',
@@ -26,9 +39,20 @@ class ForegroundTextColorAttribute extends Attribute<String?> {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    if (value == null || value!.isEmpty) return null;
+    return XmlElement.tag(
+      'w:color',
+      attributes: [
+        XmlAttribute(XmlName.fromString('w:val'), value ?? noColor),
+      ],
+    );
+  }
 }
 
-class FontSizeAttribute extends Attribute<int?> {
+class FontSizeAttribute extends NodeAttribute<int?> {
   FontSizeAttribute(int? size)
       : super(
           key: 'font-size',
@@ -40,9 +64,23 @@ class FontSizeAttribute extends Attribute<int?> {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    if (value == null || value! < 0) return null;
+    return XmlElement.tag(
+      'w:sz',
+      attributes: [
+        XmlAttribute(
+          XmlName.fromString('w:val'),
+          '${value!}',
+        ),
+      ],
+    );
+  }
 }
 
-class FontFamilyAttribute extends Attribute<String?> {
+class FontFamilyAttribute extends NodeAttribute<String?> {
   FontFamilyAttribute(String? font)
       : super(
           key: 'font-family',
@@ -54,9 +92,24 @@ class FontFamilyAttribute extends Attribute<String?> {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    if (value == null || value!.isEmpty) return null;
+    return XmlElement.tag(
+      'w:rFonts',
+      attributes: [
+        XmlAttribute(
+          XmlName.fromString('w:val'),
+          value!,
+        ),
+      ],
+      isSelfClosing: true,
+    );
+  }
 }
 
-class StrikeAttribute extends Attribute<bool> {
+class StrikeAttribute extends NodeAttribute<bool> {
   StrikeAttribute()
       : super(
           key: 'strike',
@@ -68,9 +121,14 @@ class StrikeAttribute extends Attribute<bool> {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    return XmlElement.tag('w:strike');
+  }
 }
 
-class UnderlineAttribute extends Attribute<bool> {
+class UnderlineAttribute extends NodeAttribute<bool> {
   UnderlineAttribute()
       : super(
           key: 'underline',
@@ -82,9 +140,14 @@ class UnderlineAttribute extends Attribute<bool> {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    return XmlElement.tag('w:u');
+  }
 }
 
-class ItalicAttribute extends Attribute<bool> {
+class ItalicAttribute extends NodeAttribute<bool> {
   ItalicAttribute()
       : super(
           key: 'italic',
@@ -96,9 +159,14 @@ class ItalicAttribute extends Attribute<bool> {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    return XmlElement.tag('w:i');
+  }
 }
 
-class LinkAttribute extends Attribute<String> {
+class LinkAttribute extends NodeAttribute<String> {
   LinkAttribute(String link)
       : super(
           key: 'href',
@@ -108,11 +176,16 @@ class LinkAttribute extends Attribute<String> {
 
   @override
   String toXmlString() {
-    throw UnimplementedError();
+    return '';
+  }
+
+  @override
+  XmlElement? toXml() {
+    return null;
   }
 }
 
-class BoldAttribute extends Attribute<bool> {
+class BoldAttribute extends NodeAttribute<bool> {
   BoldAttribute()
       : super(
           key: 'bold',
@@ -124,9 +197,14 @@ class BoldAttribute extends Attribute<bool> {
   String toXmlString() {
     return '<w:b />';
   }
+
+  @override
+  XmlElement? toXml() {
+    return XmlElement.tag('w:b');
+  }
 }
 
-class ScriptAttribute extends Attribute<String> {
+class ScriptAttribute extends NodeAttribute<String> {
   ScriptAttribute(String script)
       : super(
           key: 'script',
@@ -136,10 +214,23 @@ class ScriptAttribute extends Attribute<String> {
 
   @override
   String toXmlString() {
-    if(value.isEmpty || value != 'subscript' && value != 'superscript') return '';
+    if (value.isEmpty || value != 'subscript' && value != 'superscript') return '';
     return '''
       <w:vertAlign w:val="$value"/>
-    '''; 
+    ''';
+  }
+
+  @override
+  XmlElement? toXml() {
+    return XmlElement.tag(
+      'w:vertAlign',
+      attributes: [
+        XmlAttribute(
+          XmlName.fromString('w:val'),
+          value,
+        ),
+      ],
+    );
   }
 }
 

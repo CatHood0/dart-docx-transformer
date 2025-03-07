@@ -1,0 +1,3 @@
+mixin PrintableMixin {
+  String toPlainText();
+}

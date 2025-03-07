@@ -2,7 +2,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_quill_delta/dart_quill_delta.dart';
-import 'package:docx_transformer/src/common/file_creator.dart';
+
+import '../../../docx_transformer.dart';
+
+String generateMediaName(int lastId, {bool trim = true, bool isImage = false}) {
+  return isImage ? 'image${trim ? lastId : ' $lastId'}' : 'media${trim ? lastId : ' $lastId'}';
+}
 
 typedef FileName = String;
 typedef FileExtension = String;
@@ -20,7 +25,7 @@ Map<String, FileCreator> mediaCreator(
   required void Function(String ext) onDetectExtension,
   String Function(String existentName)? onCatchExistentRegister,
 }) {
-  Map<String, FileCreator> namesRegistered = {};
+  final Map<String, FileCreator> namesRegistered = {};
   int lastNumberGenerated = 0;
   for (final op in operationWithEmbeds) {
     final fileProps = buildFileFromEmbed(op);
@@ -29,8 +34,7 @@ Map<String, FileCreator> mediaCreator(
         'file name cannot be empty or contains slash or invert slash "/|\\"');
     assert(fileProps.$3.isNotEmpty && !fileProps.$3.contains('/'),
         'file extension name cannot be empty or contains slash or invert slash "/|\\"');
-    final mediaName =
-        '${fileProps.$2}${lastNumberGenerated + 1}${fileProps.$3}';
+    final mediaName = '${fileProps.$2}${lastNumberGenerated + 1}${fileProps.$3}';
     // register the new extension type if needed
     onDetectExtension(fileProps.$3);
     final fileCreator = FileCreator(
@@ -42,8 +46,7 @@ Map<String, FileCreator> mediaCreator(
     if (namesRegistered.containsKey(mediaName)) {
       final nameFallback = onCatchExistentRegister?.call(fileProps.$2);
       if (nameFallback == null) {
-        throw StateError(
-            '$mediaName is already registered into the media registers and cannot be accepted');
+        throw StateError('$mediaName is already registered into the media registers and cannot be accepted');
       }
       assert(nameFallback.isNotEmpty && !nameFallback.contains('/'),
           'file name cannot be empty or contains slash or invert slash "/|\\"');

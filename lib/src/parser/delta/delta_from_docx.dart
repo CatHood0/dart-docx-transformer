@@ -1,16 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:archive/archive.dart';
 import 'package:dart_quill_delta/dart_quill_delta.dart';
 import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart' as xml;
 
 import '../../../docx_transformer.dart';
+import '../../common/extensions/styles_extension.dart';
 import '../../common/generators/convert_xml_styles_to_doc.dart';
 import '../../common/internals_vars.dart';
 import '../../common/schemas/common_node_keys/word_files_common.dart';
 import '../../common/schemas/common_node_keys/xml_keys.dart';
+import '../../common/styles.dart';
 import '../../constants.dart';
 
 class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParserOptions> {
@@ -77,8 +78,6 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
       throw StateError("$documentFilePath couldn't be founded into the File passed");
     }
 
-    //print(document.toXmlString(pretty: true));
-
     _buildTabMultiplierIfNeeded(settings);
 
     final Map<String, Object> documentRelations = <String, Object>{};
@@ -91,21 +90,22 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
       },
     );
 
-    final DocumentStylesSheet docStyles = DocumentStylesSheet.fromStyles(
-      styles!,
-      ConverterFromXmlContext(
-        shouldParserSizeToHeading: options.shouldParserSizeToHeading,
-        parseXmlSpacing: options.parseXmlSpacing,
-        ignoreColorWhenNoSupported: options.ignoreColorWhenNoSupported,
-        colorBuilder: options.colorBuilder,
-        checkColor: options.checkColor,
-        acceptFontValueWhen: options.acceptFontValueWhen,
-        acceptSizeValueWhen: options.acceptSizeValueWhen,
-        acceptSpacingValueWhen: options.acceptSpacingValueWhen,
-        defaultTabStop: kDefaultTabStop,
-      ),
-      computeIndents: false,
+    final ConverterFromXmlContext context = ConverterFromXmlContext(
+      shouldParserSizeToHeading: options.shouldParserSizeToHeading,
+      parseSpacing: options.parseXmlSpacing,
+      ignoreColorWhenNoSupported: options.ignoreColorWhenNoSupported,
+      colorBuilder: options.colorBuilder,
+      checkColor: options.checkColor,
+      acceptFontValueWhen: options.acceptFontValueWhen,
+      acceptSizeValueWhen: options.acceptSizeValueWhen,
+      acceptSpacingValueWhen: options.acceptSpacingValueWhen,
+      defaultTabStop: kDefaultTabStop,
     );
+
+    final DocumentStylesSheet docStyles = DocumentStylesSheet.fromXmlStyles(
+      styles!,
+    );
+
 
     final Iterable<xml.XmlElement> paragraphNodes = document.findAllElements(xmlParagraphNode);
 
@@ -127,16 +127,45 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
       // style by the id passed
       final xml.XmlElement? paragraphStyle = paragraphLevelAttributesNode?.getElement(xmlpStyleNode);
       final Style? style = docStyles.getStyleById(paragraphStyle?.getAttribute('w:val') ?? '') ??
-          docStyles.getStyleById(
-            paragraph.getAttribute('w:rsId') ?? '',
-          );
+          docStyles.getStyleById(paragraph.getAttribute('w:rsId') ?? '');
       if (style != null) {
-        //TODO: sometimes, basedOn param, could be "Normal" that means
-        // that we will need to search `<w:docDefaults>` node and get the styles
-        // that are applied to the all common paragraphs
-        final Style parent = docStyles.getParentOf(style);
-        blockAttributes.addAll(<String, dynamic>{...?style.block, ...?parent.block});
-        paragraphInlineAttributes.addAll(<String, dynamic>{...?style.inline, ...?parent.inline});
+        final String? basedOn = style.basedOn?.value as String?;
+        if (basedOn != null && basedOn != 'Normal') {
+          final Style parent = docStyles.getParentOf(style);
+          blockAttributes.addAll(<String, dynamic>{
+            ...?style.buildBlockAttributesMap(
+              computeIndents: false,
+              context: context,
+            ),
+            ...?parent.buildBlockAttributesMap(
+              computeIndents: false,
+              context: context,
+            )
+          });
+          paragraphInlineAttributes.addAll(<String, dynamic>{
+            ...?style.buildInlineAttributesMap(
+              context: context,
+              blockAttributes: blockAttributes,
+            ),
+            ...?parent.buildInlineAttributesMap(
+              context: context,
+              blockAttributes: blockAttributes,
+            ),
+          });
+        } else {
+          blockAttributes.addAll(<String, dynamic>{
+            ...?style.buildBlockAttributesMap(
+              computeIndents: false,
+              context: context,
+            ),
+          });
+          paragraphInlineAttributes.addAll(<String, dynamic>{
+            ...?style.buildInlineAttributesMap(
+              context: context,
+              blockAttributes: blockAttributes,
+            ),
+          });
+        }
       }
       // block attributes
       final (
@@ -214,7 +243,7 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
             blockAttributes,
             paragraphInlineAttributes,
             commonInlineParagraphAttributes,
-            textPartNode.getElement(xmlTextPartNode)!,
+            textPartNode.getElement(xmlTextRunNode)!,
             delta,
             documentRelations,
             rawMedia,
@@ -260,7 +289,7 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
     Map<String, dynamic> documentRelations,
     Map<String, Object> rawMedia,
   ) async {
-    if (node.localName == 'r') {
+    if (node.localName == 'r' && options.onDetectImage != null) {
       final xml.XmlElement? drawNode =
           node.getElement('w:drawing') ?? node.findAllElements('w:drawing').firstOrNull;
       // could be an image
@@ -279,7 +308,7 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
             final Uint8List bytes = rawMedia[effectivePath] as Uint8List;
             // transform the image to something that can be inserted in a Delta
             final String? url =
-                await options.onDetectImage.call(bytes, imagePath.replaceFirst(imageNamePattern, ''));
+                await options.onDetectImage!(bytes, imagePath.replaceFirst(imageNamePattern, ''));
             if (url != null) {
               assert(url.isNotEmpty, 'url/path of the image(path: $effectivePath) cannot be empty');
               delta.insert(<String, Object>{'image': url});

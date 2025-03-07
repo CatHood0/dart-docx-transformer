@@ -1,7 +1,5 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:docx_transformer/docx_transformer.dart';
 import 'package:example/editor.dart';
 import 'package:file_selector/file_selector.dart';
@@ -92,17 +90,29 @@ class _DesktopTreeViewExampleState extends State<Body> {
                 const SizedBox.shrink(),
                 MaterialButton(
                   onPressed: () async {
-                    final location = await getSaveLocation();
+                    final location = await getSaveLocation(
+                      suggestedName: 'document_docx',
+                      acceptedTypeGroups: [
+                        XTypeGroup(
+                          label: 'DOCX',
+                          extensions: ['docx'],
+                          mimeTypes: [kDefaultWordFileMimetype],
+                          uniformTypeIdentifiers: [kDefaultWordFileMimetype],
+                        ),
+                      ],
+                    );
                     if (location != null) {
                       final String plain = _controller.document.toPlainText(FlutterQuillEmbeds.editorBuilders());
-                      final Uint8List bytes =
-                          await PlainTextToDocx(
-                            data: plain,
-                            options: Options(onDetectImage: (bytes, v) async => '', title: 'documento 2'),
-                          ).build();
-                      const String mimeType =
-                          'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-                      final XFile textFile = XFile.fromData(bytes, mimeType: mimeType, name: 'document4.docx');
+                      final Uint8List bytes = await PlainTextToDocx(
+                        options: BasicParserOptions(
+                          title: 'documento 2',
+                        ),
+                      ).build(data: plain);
+                      final XFile textFile = XFile.fromData(
+                        bytes,
+                        mimeType: kDefaultWordFileMimetype,
+                        name: 'document4.docx',
+                      );
                       await textFile.saveTo(location.path);
                     }
                   },

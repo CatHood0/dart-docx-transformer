@@ -10,8 +10,8 @@ enum ParseTo {
 
 class BasicParserOptions extends ParserOptions {
   BasicParserOptions({
-    required super.onDetectImage,
     required this.title,
+    super.onDetectImage,
     this.subject = '',
     this.owner = '',
     this.description = '',
@@ -33,7 +33,7 @@ class BasicParserOptions extends ParserOptions {
 abstract class ParserOptions {
   ParserOptions({
     required this.ignoreColorWhenNoSupported,
-    required this.onDetectImage,
+    this.onDetectImage,
     this.acceptFontValueWhen,
     this.acceptSizeValueWhen,
     this.acceptSpacingValueWhen,
@@ -50,8 +50,8 @@ abstract class ParserOptions {
 
   final String? Function(String? hex)? colorBuilder;
   final bool Function(String? hex)? checkColor;
-  final Future<String?> Function(Uint8List bytes, String name) onDetectImage;
-  final ParseXmlSpacingCallback? parseXmlSpacing;
+  final Future<String?> Function(Uint8List bytes, String name)? onDetectImage;
+  final ParseSpacingCallback? parseXmlSpacing;
   /// a way to build a custom size from Word
   /// to a know value for Quill Delta
   ///

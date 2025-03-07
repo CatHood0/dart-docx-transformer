@@ -1,7 +1,7 @@
 import 'package:dart_quill_delta/dart_quill_delta.dart';
-import 'package:xml/xml.dart' as xml;
+import '../common/styles.dart';
 
-typedef Predicate<T> = bool Function(xml.XmlNode node, T value);
+typedef Predicate<T> = bool Function(T value);
 typedef PredicateMisspell = bool Function(List<Operation> operationsMisspelled);
 typedef ParseSizeToHeadingCallback = int? Function(String size);
-typedef ParseXmlSpacingCallback = int Function(xml.XmlElement spacingNode);
+typedef ParseSpacingCallback = int Function(StyleConfigurator spacingConfigurator);

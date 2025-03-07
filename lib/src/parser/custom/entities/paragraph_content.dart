@@ -1,32 +1,60 @@
-import '../../../../docx_transformer.dart';
+import 'package:xml/xml.dart';
+
+import '../../../common/styles.dart';
 import 'base/content.dart';
 import 'base/document_context.dart';
+import 'base/parent_content.dart';
+import 'base/simple_content.dart';
 
-class ParagraphContent extends Content<Iterable<Content>> {
+class ParagraphContent extends ParentContent<SimpleContent> {
   ParagraphContent({
-    required super.data,
+    required Iterable<SimpleContent> data,
     this.style,
-  }) : super(parent: null);
+  }) : super(parent: null, data: data) {
+    for (final SimpleContent content in data) {
+      content.parent = this;
+    }
+  }
 
   final Style? style;
 
   @override
-  String buildXml({required DocumentContext context}) {
-    final String style = buildXmlStyle(context: context);
-    final String runs = data.map((Content e) {
-      context.currentContentPart = e;
-      return e.buildXml(
-        context: context,
-      );
-    }).join('\n');
-    return '<w:p>$style\n$runs</w:p>';
+  XmlElement buildXml({required DocumentContext context}) {
+    final List<XmlElement> paragraphStyles = buildXmlStyle(context: context);
+    final List<XmlAttribute> attrs = [...paragraphStyles.whereType<XmlAttribute>()];
+    return runParent(
+      attributes: attrs,
+      children: <XmlNode>[
+        ...paragraphStyles.whereType<XmlElement>(),
+        ...data.map(
+          (SimpleContent e) => e.buildXml(context: context),
+        ),
+      ],
+    );
   }
 
   @override
-  String buildXmlStyle({required DocumentContext context}) {
-    return '';
+  List<XmlElement> buildXmlStyle({required DocumentContext context}) {
+    return [];
   }
 
   @override
   ParagraphContent get copy => ParagraphContent(data: data);
+
+  @override
+  SimpleContent? visitElement(bool Function(Content element) shouldGetElement,
+      {bool visitChildrenIfNeeded = false}) {
+    for (final element in data) {
+      if (shouldGetElement(element)) {
+        return element;
+      }
+    }
+    if (visitChildrenIfNeeded) {
+      for (final SimpleContent element in data) {
+        final SimpleContent? foundedEl = element.visitElement(shouldGetElement) as SimpleContent?;
+        if (foundedEl != null) return foundedEl;
+      }
+    }
+    return null;
+  }
 }

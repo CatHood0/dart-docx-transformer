@@ -4,7 +4,7 @@ import 'package:xml/xml.dart';
 import '../utils/constants.dart';
 import 'attribute.dart';
 
-class IndentAttribute extends Attribute<int?> {
+class IndentAttribute extends NodeAttribute<int?> {
   IndentAttribute(int? value)
       : super(
           key: 'indent',
@@ -17,9 +17,20 @@ class IndentAttribute extends Attribute<int?> {
     if (value == null || value! <= 0) return '';
     return '<w:ind w:line="${value! * 720}" />';
   }
+
+  @override
+  XmlElement? toXml() {
+    if(value == null || value! < 0) return null;
+    return XmlElement.tag(
+      'w:ind',
+      attributes: [
+        XmlAttribute(XmlName.fromString('w:line'), '${value! * 720}'),
+      ],
+    );
+  }
 }
 
-class BlockquoteAttribute extends Attribute<bool> {
+class BlockquoteAttribute extends NodeAttribute<bool> {
   BlockquoteAttribute()
       : super(
           key: 'blockquote',
@@ -41,9 +52,8 @@ class BlockquoteAttribute extends Attribute<bool> {
 
   @override
   String toXmlString() {
-    return '''
-      <w:pBdr> 
-        ${value ? '<w:left '
+    return '''<w:pBdr> 
+        ${value ? '<w:left'
             'w:="single" '
             'w:color="${borderColor ?? kDefaultBorderColor} '
             'w:size="${borderSize ?? 8} '
@@ -55,9 +65,46 @@ class BlockquoteAttribute extends Attribute<bool> {
       </w:pBdr>
     ''';
   }
+
+  @override
+  XmlElement? toXml() {
+    return XmlElement.tag(
+      'w:pBdr',
+      isSelfClosing: !value,
+      children: !value
+          ? <XmlNode>[]
+          : <XmlNode>[
+              XmlElement(
+                XmlName.fromString('w:left'),
+                [
+                  XmlAttribute(XmlName.fromString('w:val'), 'single'),
+                  XmlAttribute(XmlName.fromString('w:color'), borderColor ?? kDefaultBorderColor),
+                  XmlAttribute(XmlName.fromString('w:sz'), '${borderSize ?? 8}'),
+                  XmlAttribute(XmlName.fromString('w:space'), '${borderSpace ?? commonBorderSpace}'),
+                ],
+              ),
+              _buildNoneBorderXmlElement('w:right'),
+              _buildNoneBorderXmlElement('w:top'),
+              _buildNoneBorderXmlElement('w:bottom'),
+              _buildNoneBorderXmlElement('w:between'),
+            ],
+    );
+  }
+
+  XmlElement _buildNoneBorderXmlElement(String qualifiedName) {
+    return XmlElement(
+      XmlName.fromString(qualifiedName),
+      [
+        XmlAttribute(XmlName.fromString('w:val'), noVal),
+        XmlAttribute(XmlName.fromString('w:color'), noColor),
+        XmlAttribute(XmlName.fromString('w:sz'), commonBorderSize.toString()),
+        XmlAttribute(XmlName.fromString('w:space'), commonBorderSpace.toString()),
+      ],
+    );
+  }
 }
 
-class HeaderAttribute extends Attribute<int> {
+class HeaderAttribute extends NodeAttribute<int> {
   HeaderAttribute(int value)
       : super(
           key: 'heading',
@@ -69,9 +116,14 @@ class HeaderAttribute extends Attribute<int> {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    throw UnimplementedError();
+  }
 }
 
-class AlignmentAttribute extends Attribute<String> {
+class AlignmentAttribute extends NodeAttribute<String> {
   AlignmentAttribute(String value)
       : super(
           key: 'alignment',
@@ -83,6 +135,11 @@ class AlignmentAttribute extends Attribute<String> {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    throw UnimplementedError();
+  }
 }
 
 class NumberedListAttribute extends ListAttribute {
@@ -90,6 +147,11 @@ class NumberedListAttribute extends ListAttribute {
 
   @override
   String toXmlString() {
+    throw UnimplementedError();
+  }
+
+  @override
+  XmlElement? toXml() {
     throw UnimplementedError();
   }
 }
@@ -101,9 +163,14 @@ class UnorderedListAttribute extends ListAttribute {
   String toXmlString() {
     throw UnimplementedError();
   }
+
+  @override
+  XmlElement? toXml() {
+    throw UnimplementedError();
+  }
 }
 
-abstract class ListAttribute extends Attribute<String> {
+abstract class ListAttribute extends NodeAttribute<String> {
   ListAttribute(String value)
       : super(
           key: 'list',

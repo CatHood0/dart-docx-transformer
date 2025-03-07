@@ -1,5 +1,7 @@
-abstract class Attribute<T> {
-  Attribute({
+import 'package:xml/xml.dart';
+
+abstract class NodeAttribute<T> {
+  NodeAttribute({
     required this.key,
     required this.value,
     required this.scope,
@@ -9,6 +11,7 @@ abstract class Attribute<T> {
   final T value;
   final Scope scope;
   String toXmlString();
+  XmlElement? toXml();
 }
 
 enum Scope {

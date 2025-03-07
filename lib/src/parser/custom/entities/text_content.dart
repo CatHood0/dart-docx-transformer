@@ -1,39 +1,63 @@
+import 'package:xml/xml.dart';
+
+import '../../../common/schemas/common_node_keys/xml_keys.dart';
 import '../attributes/attribute.dart';
+import '../attributes/inline.dart';
 import 'base/content.dart';
 import 'base/document_context.dart';
+import 'base/simple_content.dart';
 
-const String _kDefaultEmptyRun = '<w:r><w:t xml:space="preserved"></w:t></w:r>';
-
-class TextContent extends Content<TextPart> {
+class TextContent extends SimpleContent<TextPart> {
   TextContent({
     required super.data,
     super.parent,
   });
 
   @override
-  String buildXml({required DocumentContext context}) {
-    final String style = buildXmlStyle(context: context);
-    final List<String> texts = data.text.split(RegExp(r'\s'));
-    final String text = texts.map((String element) {
-      return '''\n<w:r>$style\n<w:t xml:space="preserve">$element</w:t>\n</w:r>''';
-    }).join('\n$_kDefaultEmptyRun');
-    return text;
+  XmlElement buildXml({required DocumentContext context}) {
+    return runParent(
+      runAttributes: buildXmlStyle(context: context),
+      nodes: [
+        XmlElement.tag(
+          xmlTextNode,
+          children: [
+            XmlText(data.text),
+          ],
+          isSelfClosing: false,
+        )
+      ],
+      isLink: data.styles.firstWhere(
+        (e) => e is LinkAttribute,
+        orElse: BoldAttribute.new,
+      ) is LinkAttribute,
+    );
   }
 
   @override
-  String buildXmlStyle({required DocumentContext context}) {
-    if (data.styles.isEmpty) return '';
-    final List<Attribute> styles = <Attribute>[...data.styles];
-    if (styles.where((Attribute e) => e.scope != Scope.portion).isNotEmpty) {
+  List<XmlElement> buildXmlStyle({required DocumentContext context}) {
+    if (data.styles.isEmpty) return [];
+    final List<NodeAttribute> styles = <NodeAttribute>[...data.styles];
+    if (styles.where((NodeAttribute e) => e.scope != Scope.portion).isNotEmpty) {
       throw Exception('The styles passed in $runtimeType are invalid. '
           'All of them must implement "Scope.portion" value');
     }
-    final Iterable<String> xmlStyles = styles.map((Attribute e) => e.toXmlString());
-    if (xmlStyles.isEmpty) return '';
-    return '<w:rPr>${xmlStyles.join('$_whitespaces\n')}</w:rPr>';
+    final List<XmlElement> xmlStyles = <XmlElement>[];
+    for (final NodeAttribute style in styles) {
+      final XmlElement? styleXml = style.toXml();
+      if (styleXml != null) {
+        xmlStyles.add(styleXml);
+      }
+    }
+    return xmlStyles.isEmpty
+        ? []
+        : [
+            XmlElement.tag('w:rPr',
+                children: [
+                  ...xmlStyles,
+                ],
+                isSelfClosing: false),
+          ];
   }
-
-  final String _whitespaces = '      ';
 
   @override
   TextContent get copy => TextContent(
@@ -43,14 +67,31 @@ class TextContent extends Content<TextPart> {
         ),
         parent: parent,
       );
+
+
+  @override
+  TextContent? visitElement(bool Function(Content element) shouldGetElement) {
+    if (shouldGetElement(this)) return this;
+    return null;
+  }
+
+  @override
+  String toString() {
+    return 'TextContent(id: $id, data: $data)';
+  }
+
+  @override
+  String toPlainText() {
+    return data.text;
+  }
 }
 
 class TextPart {
   TextPart({
     required this.text,
-    this.styles = const <Attribute>[],
+    this.styles = const <NodeAttribute>[],
   });
 
   final String text;
-  final List<Attribute> styles;
+  final List<NodeAttribute> styles;
 }

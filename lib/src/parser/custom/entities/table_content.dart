@@ -1,38 +1,48 @@
 import 'package:flutter/widgets.dart';
+import 'package:xml/xml.dart';
 
 import 'base/content.dart';
 import 'base/document_context.dart';
+import 'base/parent_content.dart';
+import 'base/simple_content.dart';
 
-class TableContent extends Content<TableData> {
+class TableContent extends ParentContent<TableRow> {
   TableContent({
     required super.data,
     super.parent,
   });
 
   @override
-  String buildXml({required DocumentContext context}) {
-    return '';
+  XmlElement buildXml({required DocumentContext context}) {
+    return runParent(
+      attributes: <XmlAttribute>[],
+      children: <XmlNode>[],
+    );
   }
 
   @override
-  String buildXmlStyle({required DocumentContext context}) {
-    return '';
+  List<XmlNode> buildXmlStyle({required DocumentContext context}) {
+    return <XmlNode>[];
   }
 
   @override
   TableContent get copy => TableContent(data: data);
+
+  @override
+  Content? visitElement(bool Function(Content element) shouldGetElement) {
+    for (final TableRow row in data) {
+      for (final TableCell cell in row.cells) {
+        if (shouldGetElement(cell.content)) {
+          return cell.content;
+        }
+      }
+    }
+    return null;
+  }
 }
 
-class TableData {
-  TableData({
-    required this.columns,
-  });
-
-  final Iterable<TableColumn> columns;
-}
-
-class TableColumn {
-  TableColumn({
+class TableRow {
+  TableRow({
     required this.cells,
   });
 
@@ -50,5 +60,5 @@ class TableCell {
   final double? width;
   final double? height;
   final EdgeInsets? padding;
-  final Content content;
+  final SimpleContent content;
 }

@@ -1,8 +1,4 @@
 class RelationShip {
-  final String rId;
-  final String target;
-  final String type;
-
   RelationShip({
     required this.rId,
     required this.target,
@@ -10,6 +6,10 @@ class RelationShip {
   })  : assert(rId.trim().isNotEmpty, 'rId cannot be empty'),
         assert(target.trim().isNotEmpty, 'target cannot be empty'),
         assert(type.trim().isNotEmpty, 'type cannot be empty');
+
+  final String rId;
+  final String target;
+  final String type;
 
   @override
   String toString() {
