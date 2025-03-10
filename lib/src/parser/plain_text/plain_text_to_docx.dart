@@ -136,7 +136,7 @@ class PlainTextToDocx extends Parser<String, Future<Uint8List?>, BasicParserOpti
   }
 
   List<XmlElement> _documentContentBuilder({required String data}) {
-    final List<String> lines = const LineSplitter().convert('\n');
+    final List<String> lines = const LineSplitter().convert(data);
     final List<XmlElement> buffer = <XmlElement>[];
     for (final String text in lines) {
       buffer.add(

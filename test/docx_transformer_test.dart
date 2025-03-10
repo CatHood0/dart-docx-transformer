@@ -131,12 +131,7 @@ void main() {
 
   test('minimal test', () async {
     final PlainTextToDocx parser = PlainTextToDocx(
-      options: BasicParserOptions(
-        title: 'title',
-        onDetectImage: (Uint8List bytes, String name) async {
-          return 'path/to/my_image_${nanoid(8)}';
-        },
-      ),
+      options: BasicParserOptions(title: 'title'),
     );
     final Uint8List bytes =
         await parser.build(data: 'Hello world about\nmy changed world\n\nYeah this is break');

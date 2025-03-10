@@ -33,10 +33,10 @@ final List<String> kDefaultAcceptedFileExtensions = List.unmodifiable([
 ///
 /// ## No valid links:
 ///
-/// * google (falta el dominio y la extensión).
-/// * http:// (falta el dominio).
-/// * www.google (falta la extensión del dominio).
-/// * ftp://dominio.com (este regex no soporta otros protocolos como FTP).
+/// * google
+/// * http://
+/// * www.google
+/// * ftp://dominio.com
 final RegExp linkDetectorMatcher = RegExp(
   r'^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$',
   multiLine: false,
@@ -54,8 +54,8 @@ final RegExp linkDetectorMatcher = RegExp(
 /// 240 * 1440 => 345600
 const int kDefaultTwipsValue = 1440;
 
-num computeTwip(num value, {bool toWord = true}) {
-  return toWord ? value * kDefaultTwipsValue : value / kDefaultTwipsValue;
+num computeTwip(num value, {bool toWord = true, int defaultTwipsValue = kDefaultTwipsValue}) {
+  return toWord ? value * defaultTwipsValue : value / defaultTwipsValue;
 }
 
 const String defaultFont = 'Times New Roman';
@@ -63,8 +63,6 @@ const int defaultFontSize = 22;
 const String defaultLang = 'en-US';
 
 const String defaultOrderedListStyleType = 'decimal';
-final Map<String, dynamic> kDefaultPreserveWhitespaceMark =
-    Map<String, String>.unmodifiable(<String, dynamic>{'xml:space': 'preserved'});
 
 const Orientation defaultOrientation = Orientation.portrait;
 
