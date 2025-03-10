@@ -1,42 +1,28 @@
-import '../../../../../docx_transformer.dart';
-import '../../../namespaces.dart';
+import 'package:xml/xml.dart';
 
-String generateDocumentXml(
-  DocumentProperties properties, [
-  String content = '',
-]) =>
-    '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <w:document
-     xmlns:a="${namespaces['a']}"
-     xmlns:cdr="${namespaces['cdr']}"
-     xmlns:o="${namespaces['o']}"
-     xmlns:pic="${namespaces['pic']}"
-     xmlns:r="${namespaces['r']}"
-     xmlns:v="${namespaces['v']}"
-     xmlns:ve="${namespaces['ve']}"
-     xmlns:vt="${namespaces['vt']}"
-     xmlns:w="${namespaces['w']}"
-     xmlns:w10="${namespaces['w10']}"
-     xmlns:wp="${namespaces['wp']}"
-     xmlns:wne="${namespaces['wne']}"
-    >
-      <w:body>
-        $content
-        <w:sectPr>
-          <w:pgSz 
-            w:w="${properties.editorSettings.pageSize.width}" 
-            w:h="${properties.editorSettings.pageSize.height}" 
-            w:orient="${properties.orientation}" 
-          />
-          <w:pgMar w:top="${properties.margins.top}"
-            w:right="${properties.margins.right}"
-            w:bottom="${properties.margins.bottom}"
-            w:left="${properties.margins.left}"
-            w:header="${properties.margins.header}"
-            w:footer="${properties.margins.footer}"
-            w:gutter="${properties.margins.gutter}"
-          />
-        </w:sectPr>
-      </w:body>
-    </w:document>
-''';
+import '../../../../../docx_transformer.dart';
+import '../../../default/xml_defaults.dart';
+
+XmlDocument generateDocumentXml(
+  DocumentProperties properties, {
+  required Iterable<XmlElement> contents,
+}) =>
+    XmlDocument(
+      <XmlNode>[
+        XmlDefaults.declaration,
+        XmlElement.tag(
+          'w:document',
+          attributes: XmlDefaults.documentAttributes,
+          children: [
+            XmlElement.tag(
+              'w:body',
+              children: [
+                ...contents,
+                XmlDefaults.sectPr(properties: properties),
+              ],
+            ),
+          ],
+          isSelfClosing: false,
+        ),
+      ],
+    );

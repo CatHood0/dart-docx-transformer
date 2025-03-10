@@ -6,7 +6,7 @@ import 'package:dart_quill_delta/dart_quill_delta.dart';
 import '../../../docx_transformer.dart';
 
 String generateMediaName(int lastId, {bool trim = true, bool isImage = false}) {
-  return isImage ? 'image${trim ? lastId : ' $lastId'}' : 'media${trim ? lastId : ' $lastId'}';
+  return isImage ? 'image ${trim ? lastId : ' $lastId'}' : 'media ${trim ? lastId : ' $lastId'}';
 }
 
 typedef FileName = String;

@@ -15,7 +15,7 @@ class DeltaToDocx extends Parser<Delta, Future<Uint8List?>?, DocxParserOptions> 
   @override
   Future<Uint8List?>? build({required Delta data}) {
     final Document? document = RichTextParser().parseDelta(data);
-    final DocumentStylesSheet docStyles = options.documentProperties.docStyles ?? defaultDocumentStyles;
+    final DocumentStylesSheet docStyles = options.documentProperties.docStyles ?? DefaultDocumentStyles.kDefaultDocumentStyleSheet;
     if (document == null) {
       throw StateError('The Delta passed is invalid to be transformed to a Word Document');
     }

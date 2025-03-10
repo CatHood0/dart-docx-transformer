@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:meta/meta.dart';
 import 'package:xml/src/xml/utils/node_list.dart';
 import 'package:xml/xml.dart' as xml;
@@ -16,6 +19,16 @@ abstract class Parser<T, R, O extends ParserOptions> {
   final O options;
 
   R build({required T data});
+
+  @protected
+  Uint8List stringToBytes(String source) {
+    return utf8.encode(source);
+  }
+
+  @protected
+  String bytesToString(Uint8List source) {
+    return utf8.decode(source, allowMalformed: false);
+  }
 
   @protected
   void buildRelations(

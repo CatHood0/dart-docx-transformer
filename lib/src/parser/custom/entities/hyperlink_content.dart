@@ -1,45 +1,26 @@
-import 'dart:convert';
-
-import 'package:flutter_quill_delta_easy_parser/extensions/helpers/string_helper.dart';
 import 'package:xml/xml.dart';
 
-import '../../../common/extensions/string_ext.dart';
+import '../../../../docx_transformer.dart';
 import '../../../common/schemas/common_node_keys/xml_keys.dart';
+import '../../../constants.dart';
 import '../attributes/attribute.dart';
-import '../attributes/inline.dart';
-import 'base/document_context.dart';
-import 'base/simple_content.dart';
 
-class TextContent extends SimpleContent<TextPart> {
-  TextContent({
+class HyperlinkContent extends SimpleContent<HyperlinkTextPart> {
+  HyperlinkContent({
     required super.data,
     super.parent,
   });
 
   @override
-  bool get isLink {
-    final NodeAttribute style = data.styles.firstWhere(
-      (NodeAttribute e) => e is LinkAttribute,
-      orElse: BoldAttribute.new,
-    );
-    return style is LinkAttribute && style.value.isNotEmpty;
-  }
+  bool get isLink => true;
 
   @override
-  String get link {
-    if (!isLink) return '';
-    final LinkAttribute hyperlinkAttribute = data.styles.firstWhere(
-      (
-        NodeAttribute e,
-      ) =>
-          e is LinkAttribute,
-    ) as LinkAttribute;
-    return hyperlinkAttribute.value;
-  }
+  String get link => data.hyperlink;
 
   @override
-  TextContent get copy => TextContent(
-        data: TextPart(
+  HyperlinkContent get copy => HyperlinkContent(
+        data: HyperlinkTextPart(
+          hyperlink: data.hyperlink,
           text: data.text,
           styles: data.styles,
         ),
@@ -48,26 +29,6 @@ class TextContent extends SimpleContent<TextPart> {
 
   @override
   XmlElement buildXml({required DocumentContext context}) {
-    final List<String> lines = tokenizeWithNewLines(data.text);
-    if (lines.length > 1) {
-      return runParent(
-        runAttributes: buildXmlStyle(context: context),
-        nodes: [
-          ...lines.map((line) {
-            if (line == '\n') {
-              return XmlElement('w:br'.toName());
-            }
-            return XmlElement.tag(
-              xmlTextNode,
-              children: [
-                XmlText(line),
-              ],
-              isSelfClosing: false,
-            );
-          }),
-        ],
-      );
-    }
     return runParent(
       runAttributes: buildXmlStyle(context: context),
       nodes: [
@@ -116,21 +77,29 @@ class TextContent extends SimpleContent<TextPart> {
 
   @override
   String toString() {
-    return 'TextContent(id: $id, data: $data)';
+    return 'HyperlinkContent(id: $id, data: $data)';
+  }
+
+  @override
+  HyperlinkContent? visitElement(
+    bool Function(Content element) shouldGetElement, {
+    bool visitChildrenIfNeeded = false,
+  }) {
+    if (shouldGetElement(this)) return this;
+    return null;
   }
 }
 
-class TextPart {
-  TextPart({
-    required this.text,
-    this.styles = const <NodeAttribute>[],
-  });
-
-  final String text;
-  final List<NodeAttribute> styles;
+class HyperlinkTextPart extends TextPart {
+  HyperlinkTextPart({
+    required super.text,
+    required this.hyperlink,
+    super.styles,
+  }) : assert(linkDetectorMatcher.hasMatch(hyperlink), 'The link: "$hyperlink" is not a valid like');
+  final String hyperlink;
 
   @override
   String toString() {
-    return 'TextPart(data: $text, styles: $styles)';
+    return 'Hyperlink(link: $hyperlink)';
   }
 }

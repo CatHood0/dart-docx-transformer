@@ -1,17 +1,23 @@
-library docx_transformer;
+library;
 
 export 'src/common/document/document_properties.dart';
 export 'src/common/document/document_styles.dart';
 export 'src/common/document/editor_properties.dart';
 export 'src/common/file_creator.dart';
 export 'src/common/generators/styles_creator.dart';
+export 'src/common/namespaces.dart';
+export 'src/common/styles.dart';
 export 'src/mimetypes.dart';
+export 'src/parser/custom/attributes/attribute.dart';
+export 'src/parser/custom/attributes/block.dart';
+export 'src/parser/custom/attributes/inline.dart';
 export 'src/parser/custom/content_to_docx.dart';
 export 'src/parser/custom/entities/base/content.dart';
 export 'src/parser/custom/entities/base/document_context.dart';
 export 'src/parser/custom/entities/base/parent_content.dart';
 export 'src/parser/custom/entities/base/simple_content.dart';
 export 'src/parser/custom/entities/content_container.dart';
+export 'src/parser/custom/entities/hyperlink_content.dart';
 export 'src/parser/custom/entities/image_content.dart';
 export 'src/parser/custom/entities/paragraph_content.dart';
 export 'src/parser/custom/entities/table_content.dart';

@@ -1,21 +1,61 @@
+import 'package:xml/xml.dart';
+
+import '../../../default/xml_defaults.dart';
+import '../../../namespaces.dart';
+import '../../common_node_keys/word_files_common.dart';
+
 /// Correspond to file [Content_Types].xml
-String generateContentTypesXml() => '''
-    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-        <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
-        <Default Extension="jpeg" ContentType="image/jpeg"/>
-        <Default Extension="png" ContentType="image/png"/>
-        <Default Extension="jpg" ContentType="image/jpg"/>
-        <Default Extension="xml" ContentType="application/xml"/>
-        <Override PartName="/_rels/.rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-        <Override PartName="/word/_rels/document.xml.rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-        <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
-        <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
-        <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>
-        <Override PartName="/word/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>
-        <Override PartName="/word/fontTable.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml"/>
-        <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
-        <Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>
-        <Override PartName="/word/webSettings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml"/>
-    </Types>
-''';
+XmlDocument generateContentTypesXml({Iterable<String> knowedExtensions = const []}) {
+  return XmlDocument(
+    [
+      XmlDefaults.declaration,
+      XmlElement.tag(
+        'Types',
+        attributes: [XmlAttribute(XmlName.fromString('xmlns'), namespaces['contentTypes']!)],
+        children: [
+          _defaultElement('rels', namespaces['relationsXml']!),
+          _defaultElement('png', 'image/png'),
+          _defaultElement('jpg', 'image/jpg'),
+          _defaultElement('jpeg', 'image/jpeg'),
+          _defaultElement('xml', 'application/xml'),
+          _overrideElement('/$relsFilePath', namespaces['relationsXml']!),
+          _overrideElement('/$documentXmlRelsFilePath', namespaces['relationsXml']!),
+          _overrideElement('/$documentFilePath', namespaces['documentType']!),
+          _overrideElement('/$stylesXmlFilePath', namespaces['stylesType']!),
+          _overrideElement('/$numberingXmlFilePath', namespaces['numberingType']!),
+          // we need to auto generate theme types when needed
+          _overrideElement('/$theme1XmlFilePath', namespaces['themeType']!),
+          _overrideElement('/$fontTableXmlFilePath', namespaces['fontTableType']!),
+          _overrideElement('/$coreFilePath', namespaces['corePropsType']!),
+          _overrideElement('/$settingsXmlFilePath', namespaces['settingsType']!),
+          _overrideElement('/$webSettingsXmlFilePath', namespaces['webSettingsType']!),
+        ],
+        isSelfClosing: false,
+      ),
+    ],
+  );
+}
+
+XmlElement _defaultElement(String type, String contentType) {
+  return XmlElement(
+    XmlName('Default'),
+    [
+      XmlAttribute(XmlName('Extension'), type),
+      XmlAttribute(XmlName('ContentType'), contentType),
+    ],
+    [],
+    true,
+  );
+}
+
+XmlElement _overrideElement(String part, String contentType) {
+  return XmlElement(
+    XmlName('Override'),
+    [
+      XmlAttribute(XmlName('PartName'), part),
+      XmlAttribute(XmlName('ContentType'), contentType),
+    ],
+    [],
+    true,
+  );
+}

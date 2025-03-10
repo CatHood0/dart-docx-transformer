@@ -1,16 +1,24 @@
-import 'package:docx_transformer/src/common/namespaces.dart';
+import 'package:xml/xml.dart';
 
-String generateNumberingXMLTemplate() => '''
-        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+import '../../../default/xml_defaults.dart';
+import '../../../namespaces.dart';
 
-      <w:numbering
-        xmlns:w="${namespaces['w']}"
-        xmlns:ve="${namespaces['ve']}"
-        xmlns:o="${namespaces['o']}"
-        xmlns:r="${namespaces['r']}"
-        xmlns:v="${namespaces['v']}"
-        xmlns:wp="${namespaces['wp']}"
-        xmlns:w10="${namespaces['w10']}"
-        xmlns:wne="${namespaces['wne']}">
-      </w:numbering>
-''';
+XmlDocument generateNumberingXMLTemplate() => XmlDocument(
+      <XmlNode>[
+        XmlDefaults.declaration,
+        XmlElement.tag(
+          'w:numbering',
+          attributes: <XmlAttribute>[
+            XmlAttribute(XmlName.fromString('xmlns:w'), namespaces['w']!),
+            XmlAttribute(XmlName.fromString('xmlns:ve'), namespaces['ve']!),
+            XmlAttribute(XmlName.fromString('xmlns:o'), namespaces['o']!),
+            XmlAttribute(XmlName.fromString('xmlns:r'), namespaces['r']!),
+            XmlAttribute(XmlName.fromString('xmlns:v'), namespaces['v']!),
+            XmlAttribute(XmlName.fromString('xmlns:wp'), namespaces['wp']!),
+            XmlAttribute(XmlName.fromString('xmlns:w10'), namespaces['w10']!),
+            XmlAttribute(XmlName.fromString('xmlns:wne'), namespaces['wne']!),
+          ],
+          isSelfClosing: false,
+        ),
+      ],
+    );

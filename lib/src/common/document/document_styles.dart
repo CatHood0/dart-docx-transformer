@@ -1,6 +1,9 @@
 import 'package:xml/xml.dart' as xml;
+import '../default/default_document_styles.dart';
 import '../generators/convert_xml_styles_to_doc.dart';
 import '../styles.dart';
+import '../styles/doc_default_inline_styles.dart';
+import '../styles/doc_default_paragraph_styles.dart';
 
 /// Represents the common styles used by the document
 ///
@@ -8,15 +11,39 @@ import '../styles.dart';
 class DocumentStylesSheet {
   const DocumentStylesSheet({
     required this.styles,
-  });
+    DocDefaultParagraphStyles? docDefaultParagraphStyles,
+    DocDefaultInlineStyles? docDefaultInlineStyles,
+  })  : _docDefaultParagraphStyles = docDefaultParagraphStyles,
+        _docDefaultInlineStyles = docDefaultInlineStyles;
 
   factory DocumentStylesSheet.fromXmlStyles(
-    xml.XmlDocument styleDoc,
-  ) {
+    xml.XmlDocument styleDoc, {
+    DocDefaultParagraphStyles? docDefaultParagraphStyles,
+    DocDefaultInlineStyles? docDefaultInlineStyles,
+  }) {
     return DocumentStylesSheet(
       styles: convertXmlStylesToStyles(styleDoc),
+      docDefaultParagraphStyles: docDefaultParagraphStyles,
+      docDefaultInlineStyles: docDefaultInlineStyles,
     );
   }
+
+  DocumentStylesSheet.base()
+      : styles = DefaultDocumentStyles.kDefaultDocumentStyleSheet.styles,
+        _docDefaultParagraphStyles = DocDefaultParagraphStyles.base(),
+        _docDefaultInlineStyles = DocDefaultInlineStyles.base();
+
+  /// There are the default values for the paragraphs styles used in styles.xml
+  final DocDefaultParagraphStyles? _docDefaultParagraphStyles;
+
+  /// There are the default values for the inline text of the paragraphs used in styles.xml
+  final DocDefaultInlineStyles? _docDefaultInlineStyles;
+
+  DocDefaultParagraphStyles get docDefaultParagraphStyles =>
+      _docDefaultParagraphStyles ?? DocDefaultParagraphStyles.base();
+
+  DocDefaultInlineStyles docDefaultInlineStyles() =>
+      _docDefaultInlineStyles ?? DocDefaultInlineStyles.base();
 
   /// These are the global styles
   final List<Style> styles;

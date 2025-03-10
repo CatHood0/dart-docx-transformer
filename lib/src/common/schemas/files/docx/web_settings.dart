@@ -1,8 +1,20 @@
+import 'package:xml/xml.dart';
+
+import '../../../default/xml_defaults.dart';
+import '../../../extensions/string_ext.dart';
 import '../../../namespaces.dart' show namespaces;
 
-String generateWebSettingsXML() => '''
-    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
-    <w:webSettings xmlns:w="${namespaces['w']}" xmlns:r="${namespaces['r']}">
-    </w:webSettings>
-''';
+XmlDocument generateWebSettingsXML() => XmlDocument(
+      [
+        XmlDefaults.declaration,
+        XmlElement.tag(
+          'w:webSettings',
+          attributes: <XmlAttribute>[
+            XmlAttribute('xmlns:w'.toName(), namespaces['w']!),
+            XmlAttribute('xmlns:r'.toName(), namespaces['r']!),
+          ],
+          children: <XmlNode>[],
+          isSelfClosing: false,
+        ),
+      ],
+    );

@@ -1,10 +1,11 @@
 import 'package:meta/meta.dart';
 import 'package:xml/xml.dart';
 
+import '../mixins/applicable_attribute_mixin.dart';
 import '../utils/constants.dart';
 import 'attribute.dart';
 
-class IndentAttribute extends NodeAttribute<int?> {
+class IndentAttribute extends NodeAttribute<int?> implements ApplicableAttributeMixin {
   IndentAttribute(int? value)
       : super(
           key: 'indent',
@@ -30,7 +31,7 @@ class IndentAttribute extends NodeAttribute<int?> {
   }
 }
 
-class BlockquoteAttribute extends NodeAttribute<bool> {
+class BlockquoteAttribute extends NodeAttribute<bool> implements ApplicableAttributeMixin {
   BlockquoteAttribute()
       : super(
           key: 'blockquote',
@@ -119,11 +120,11 @@ class HeaderAttribute extends NodeAttribute<int> {
 
   @override
   XmlElement? toXml() {
-    throw UnimplementedError();
+    return null;
   }
 }
 
-class AlignmentAttribute extends NodeAttribute<String> {
+class AlignmentAttribute extends NodeAttribute<String> implements ApplicableAttributeMixin {
   AlignmentAttribute(String value)
       : super(
           key: 'alignment',
@@ -170,7 +171,7 @@ class UnorderedListAttribute extends ListAttribute {
   }
 }
 
-abstract class ListAttribute extends NodeAttribute<String> {
+abstract class ListAttribute extends NodeAttribute<String> implements ApplicableAttributeMixin{
   ListAttribute(String value)
       : super(
           key: 'list',

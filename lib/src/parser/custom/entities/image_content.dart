@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
+import '../../../common/extensions/string_ext.dart';
+import '../../../common/namespaces.dart';
 import '../attributes/attribute.dart';
 import 'base/content.dart';
 import 'base/document_context.dart';
-import 'base/simple_content.dart';
+import 'base/parent_content.dart';
 
-class ImageContent extends SimpleContent<ImageData> {
+class ImageContent extends ParentContent<ImageData> {
   ImageContent({
     required super.data,
     super.parent,
@@ -28,15 +30,13 @@ class ImageContent extends SimpleContent<ImageData> {
   XmlElement buildXml({required DocumentContext context}) {
     // this part is the size of the image <wp:extent cx="width" cy="height"/>
     final String imageName = getImageName;
-    final String? imageId = context.media[imageName]?.name;
-    if (imageId == null) {
-      throw Exception('The image "${data.name}" couldn\'t be founded');
+    if (imageName.isEmpty) {
+      throw Exception('The image "${data.name}" couldn\'t be founded into the DocumentContext');
     }
-    final int generatedId = context.getMediaIdForImage(rId!) ?? context.generateMediaId();
+    final int docPrId = context.getMediaIdForImage(rId!) ?? context.generateMediaId();
     return runParent(
-      runAttributes: buildXmlStyle(context: context),
-      isLink: false,
-      nodes: <XmlNode>[
+      attributes: buildXmlStyle(context: context),
+      children: <XmlNode>[
         XmlElement.tag(
           'w:drawing',
           isSelfClosing: false,
@@ -49,10 +49,7 @@ class ImageContent extends SimpleContent<ImageData> {
                 XmlAttribute(XmlName.fromString('distB'), '0'),
                 XmlAttribute(XmlName.fromString('distL'), '0'),
                 XmlAttribute(XmlName.fromString('distR'), '0'),
-                XmlAttribute(
-                  XmlName.fromString('xmlns:wp'),
-                  'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing',
-                ),
+                XmlAttribute(XmlName.fromString('xmlns:wp'), namespaces['wp']!),
               ],
               children: <XmlNode>[
                 XmlElement.tag(
@@ -67,7 +64,7 @@ class ImageContent extends SimpleContent<ImageData> {
                   'wp:docPr',
                   isSelfClosing: false,
                   attributes: [
-                    XmlAttribute(XmlName.fromString('id'), generatedId.toString()),
+                    XmlAttribute(XmlName.fromString('id'), docPrId.toString()),
                     XmlAttribute(XmlName.fromString('name'), imageName),
                     XmlAttribute(XmlName.fromString('descr'), imageName),
                   ],
@@ -76,10 +73,7 @@ class ImageContent extends SimpleContent<ImageData> {
                   'a:graphic',
                   isSelfClosing: false,
                   attributes: [
-                    XmlAttribute(
-                      XmlName.fromString('xmlns:a'),
-                      'http://schemas.openxmlformats.org/drawingml/2006/main',
-                    ),
+                    XmlAttribute(XmlName.fromString('xmlns:a'), namespaces['a']!),
                   ],
                   children: [
                     XmlElement.tag(
@@ -125,8 +119,9 @@ class ImageContent extends SimpleContent<ImageData> {
                                     XmlElement.tag(
                                       'pic:cNvPr',
                                       attributes: [
-                                        XmlAttribute(XmlName.fromString('id'), generatedId.toString()),
-                                        XmlAttribute(XmlName.fromString('name'), imageName),
+                                        XmlAttribute(XmlName.fromString('id'), docPrId.toString()),
+                                        XmlAttribute(XmlName.fromString('name'),
+                                            imageName.removeAllWhitespaces()),
                                       ],
                                     ),
                                     XmlElement.tag('pic:cNvPicPr'),
@@ -175,6 +170,7 @@ class ImageContent extends SimpleContent<ImageData> {
                                             ),
                                           ],
                                         ),
+                                        //TODO: ensure to make a calculation for twips
                                         XmlElement.tag(
                                           'a:ext',
                                           attributes: [
@@ -224,14 +220,8 @@ class ImageContent extends SimpleContent<ImageData> {
   }
 
   @override
-  List<XmlElement> buildXmlStyle({required DocumentContext context}) {
+  List<XmlAttribute> buildXmlStyle({required DocumentContext context}) {
     return [];
-  }
-
-  @override
-  ImageContent? visitElement(bool Function(Content element) shouldGetElement) {
-    if (shouldGetElement(this)) return this;
-    return null;
   }
 
   @override
@@ -240,8 +230,19 @@ class ImageContent extends SimpleContent<ImageData> {
   }
 
   @override
-  String toPlainText() {
-    return '';
+  ImageContent? visitElement(
+    bool Function(Content element) shouldGetElement, {
+    bool visitChildrenIfNeeded = false,
+  }) {
+    return shouldGetElement(this) ? this : null;
+  }
+
+  @override
+  List<ImageContent>? visitAllElement(
+    bool Function(Content element) shouldGetElement, {
+    bool visitChildrenIfNeeded = true,
+  }) {
+    return shouldGetElement(this) ? <ImageContent>[this] : null;
   }
 }
 

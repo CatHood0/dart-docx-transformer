@@ -41,9 +41,7 @@ Iterable<StyleConfigurator> _buildConfigurators(xml.XmlElement? element) {
   final List<StyleConfigurator> configurators = <StyleConfigurator>[];
   if (element == null) return configurators;
   for (final xml.XmlElement node in element.children.whereType<xml.XmlElement>()) {
-    configurators.add(
-      node.toConfigurator,
-    );
+    configurators.add(node.toConfigurator);
   }
   return configurators;
 }

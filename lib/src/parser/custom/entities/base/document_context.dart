@@ -21,9 +21,9 @@ class DocumentContext {
 
   int _lastIdGenerated = 1;
 
-  int? getMediaIdForImage(String imgrId) {
+  int? getMediaIdForImage(String imageRefId) {
     for(final MediaData media in _media.values){
-      if(media.imageIdReference == imgrId) {
+      if(media.imageRefId == imageRefId) {
         return media.id;
       } 
     }
@@ -50,16 +50,16 @@ class MediaData {
     required this.id,
     required this.extension,
     required this.bytes,
-    required this.imageIdReference,
+    required this.imageRefId,
   });
 
-  /// this id is used only to get the original [ImageContent]
-  /// from the cache
-  final String imageIdReference;
+  // this is the rId of the image
+  final String imageRefId;
   final Uint8List bytes;
-  // this id is manually generated in other parts
+  // the name of the image into DOCX file 
   final String name;
   // this id is auto-generated
+  // to be pasted 
   final int id;
   // the extension of this media
   final String extension;

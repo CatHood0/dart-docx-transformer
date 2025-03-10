@@ -5,10 +5,10 @@ import 'package:example/editor.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart' hide Node;
+import 'package:flutter_quill/flutter_quill.dart' hide Node, BoldAttribute, LinkAttribute, Style, StyleAttribute;
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' hide Style;
 import 'package:path_provider/path_provider.dart';
 
 void main() {
@@ -102,14 +102,62 @@ class _DesktopTreeViewExampleState extends State<Body> {
                       ],
                     );
                     if (location != null) {
-                      final String plain = _controller.document.toPlainText(FlutterQuillEmbeds.editorBuilders());
-                      final Uint8List bytes = await PlainTextToDocx(
-                        options: BasicParserOptions(
-                          title: 'documento 2',
+                      final parser = ContentToDocx(options: ContentParserOptions(title: 'title'));
+                      final Uint8List? bytes = await parser.build(
+                        data: ContentContainer(
+                          contents: [
+                            ParagraphContent(
+                              data: [
+                                TextContent(data: TextPart(text: 'This is a part of the text where')),
+                                TextContent(
+                                  data: TextPart(text: ' your can use ', styles: <NodeAttribute>[BoldAttribute()]),
+                                ),
+                                HyperlinkContent(
+                                  data: HyperlinkTextPart(
+                                    hyperlink: 'https://www.google.com',
+                                    text: 'and this is a secondary link',
+                                  ),
+                                ),
+                                /* ImageContent(
+                                  data: ImageData(
+                                    bytes: await file.readAsBytes(),
+                                    extension: 'jpg',
+                                    width: 3400000,
+                                    height: 200000,
+                                  ),
+                                ),
+*/
+                                TextContent(
+                                  data: TextPart(
+                                    text: ' and you after a image',
+                                    styles: <NodeAttribute>[BoldAttribute()],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ParagraphContent(
+                              data: [
+                                TextContent(
+                                  data: TextPart(text: ' your can use', styles: <NodeAttribute>[BoldAttribute()]),
+                                ),
+                                TextContent(data: TextPart(text: '\nYeah')),
+                                /*
+                                ImageContent(
+                                  data: ImageData(
+                                    bytes: await file.readAsBytes(),
+                                    extension: 'jpeg',
+                                    width: 3400000,
+                                    height: 200000,
+                                  ),
+                                ),*/
+                                TextContent(data: TextPart(text: '\n')),
+                              ],
+                            ),
+                          ],
                         ),
-                      ).build(data: plain);
+                      );
                       final XFile textFile = XFile.fromData(
-                        bytes,
+                        bytes!,
                         mimeType: kDefaultWordFileMimetype,
                         name: 'document4.docx',
                       );

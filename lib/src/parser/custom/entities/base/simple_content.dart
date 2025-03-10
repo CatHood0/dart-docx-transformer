@@ -1,8 +1,9 @@
 import 'package:meta/meta.dart';
 import 'package:xml/xml.dart';
+import '../../../../../docx_transformer.dart';
 import '../../../../common/schemas/common_node_keys/xml_keys.dart';
-import 'content.dart';
-import 'printable_mixin.dart';
+import '../../exceptions/content_not_processed_exception.dart';
+import '../../mixins/printable_mixin.dart';
 
 abstract class SimpleContent<T> extends Content<T> with PrintableMixin {
   SimpleContent({
@@ -16,12 +17,17 @@ abstract class SimpleContent<T> extends Content<T> with PrintableMixin {
     return super.toString();
   }
 
+  bool get isLink;
+  String get link;
+
   @protected
   XmlElement runParent({
     required List<XmlNode> nodes,
-    required bool isLink,
     List<XmlNode> runAttributes = const [],
   }) {
+    if (rId == null && (isLink || this is ImageContent)) {
+      throw ContentNotProcessedException(content: this);
+    }
     final XmlElement run = XmlElement.tag(
       xmlTextRunNode,
       children: <XmlNode>[
@@ -43,5 +49,21 @@ abstract class SimpleContent<T> extends Content<T> with PrintableMixin {
             isSelfClosing: false,
           )
         : run;
+  }
+
+  @override
+  SimpleContent? visitElement(
+    bool Function(Content element) shouldGetElement, {
+    bool visitChildrenIfNeeded = false,
+  }) {
+    return shouldGetElement(this) ? this : null;
+  }
+
+  @override
+  List<SimpleContent>? visitAllElement(
+    bool Function(Content element) shouldGetElement, {
+    bool visitChildrenIfNeeded = true,
+  }) {
+    return shouldGetElement(this) ? <SimpleContent>[this] : null;
   }
 }

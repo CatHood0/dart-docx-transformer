@@ -1,15 +1,116 @@
-import 'package:docx_transformer/src/common/document/document_properties.dart';
-import 'package:docx_transformer/src/common/namespaces.dart';
+import 'package:xml/xml.dart';
 
-//TODO: add the proper styles for blockquote and code
-// to make correct conversions
-//TODO: implement conversion of DocumentStylesSheet to use them if are not empty
-String generateStylesXML(
+import '../../../../../docx_transformer.dart';
+import '../../../default/xml_defaults.dart';
+import '../../../extensions/string_ext.dart';
+import '../../../extensions/style_to_from_node.dart';
+
+XmlDocument generateStylesXML(
   DocumentProperties properties,
-) =>
+) {
+  final List<Style> styles = properties.docStyles.styles;
+  final XmlDocument document = XmlDocument(
+    <XmlNode>[
+      XmlDefaults.declaration,
+      XmlElement.tag(
+        'w:styles',
+        attributes: <XmlAttribute>[
+          XmlAttribute('xmlns:mc'.toName(), '${namespaces['mc']}'),
+          XmlAttribute('xmlns:r'.toName(), '${namespaces['r']}'),
+          XmlAttribute('xmlns:w'.toName(), '${namespaces['w']}'),
+          XmlAttribute('xmlns:w15'.toName(), '${namespaces['w15']}'),
+          XmlAttribute('xmlns:w14'.toName(), '${namespaces['w14']}'),
+          XmlAttribute('mc:Ignorable'.toName(), 'w14'),
+        ],
+        children: <XmlNode>[
+          XmlElement.tag(
+            'w:docDefaults',
+            children: <XmlNode>[
+              //blocks
+              XmlElement.tag(
+                'w:pPrDefault',
+                children: <XmlNode>[
+                  XmlElement.tag(
+                    'w:pPr',
+                    children: [
+                      properties.docStyles.docDefaultParagraphStyles.toNode(),
+                      XmlElement.tag(
+                        'w:spacing',
+                        attributes: [
+                          XmlAttribute(XmlName('w:after'), '120'),
+                          XmlAttribute(XmlName('w:line'), '240'),
+                          XmlAttribute(XmlName('w:lineRule'), 'atLeast'),
+                        ],
+                      ),
+                    ],
+                    isSelfClosing: false,
+                  )
+                ],
+                isSelfClosing: false,
+              ),
+              // inlines
+              XmlElement(
+                XmlName('w:rPrDefault'),
+                <XmlAttribute>[],
+                <XmlNode>[
+                  XmlElement(
+                    XmlName('w:rPr'),
+                    <XmlAttribute>[],
+                    <XmlNode>[
+                      if (properties.docStyles.docDefaultInlineStyles().toNode() != null)
+                        properties.docStyles.docDefaultInlineStyles().toNode()!,
+                      XmlElement(XmlName('w:rFonts'), [
+                        XmlAttribute(XmlName('w:ascii'), properties.editorSettings.fontFamily),
+                        XmlAttribute(XmlName('w:eastAsiaTheme'), 'minorHAnsi'),
+                        XmlAttribute(XmlName('w:hAnsiTheme'), 'minorHAnsi'),
+                        XmlAttribute(XmlName('w:cstheme'), 'minorBidi'),
+                      ]),
+                      XmlElement(XmlName('w:sz'), [
+                        XmlAttribute(XmlName('w:val'), '${properties.editorSettings.fontSize}'),
+                      ]),
+                      XmlElement(
+                        XmlName('w:szCs'),
+                        [
+                          XmlAttribute(
+                            XmlName('w:val'),
+                            '${properties.editorSettings.complexScriptFontSize}',
+                          ),
+                        ],
+                      ),
+                      XmlElement(
+                        XmlName('w:lang'),
+                        [
+                          XmlAttribute(XmlName('w:val'), properties.editorSettings.language),
+                          XmlAttribute(XmlName('w:eastAsia'), properties.editorSettings.language),
+                          XmlAttribute(XmlName('w:bidi'), 'ar-SA'),
+                        ],
+                      ),
+                    ],
+                    false,
+                  ),
+                ],
+                false,
+              ),
+            ],
+            isSelfClosing: false,
+          ),
+          ...styles.where(_avoidInvalidStyles).map<XmlElement>(
+                (Style style) => style.toNode()!,
+              ),
+        ],
+        isSelfClosing: false,
+      ),
+    ],
+  );
+  return document;
+}
+
+bool _avoidInvalidStyles(Style style) {
+  return style.styleName == 'invalid' || style.styleId == 'invalid';
+}
+/*
     '''
   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
   <w:styles xmlns:w="${namespaces['w']}" xmlns:r="${namespaces['r']}">
 	<w:docDefaults>
 	  <w:rPrDefault>
@@ -150,3 +251,6 @@ String generateStylesXML(
 	</w:style>
   </w:styles>
 ''';
+
+
+*/

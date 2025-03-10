@@ -1,11 +1,39 @@
 import 'dart:typed_data';
 
 import '../../docx_transformer.dart';
+import '../constants.dart';
 import '../util/predicate.dart';
 
 enum ParseTo {
   odt,
   docx,
+}
+
+class ContentParserOptions extends ParserOptions {
+  ContentParserOptions({
+    required this.title,
+    List<String>? supportedFileExtensions,
+    this.subject = '',
+    this.owner = '',
+    this.description = '',
+    this.lastModifiedBy = '',
+    this.keywords = const <String>[],
+    this.revisions = 1,
+    this.properties,
+  })  : supportedFileExtensions = supportedFileExtensions ?? kDefaultAcceptedFileExtensions,
+        super(
+          ignoreColorWhenNoSupported: false,
+          onDetectImage: null,
+        );
+  final List<String> supportedFileExtensions;
+  final String title;
+  final String owner;
+  final String subject;
+  final String description;
+  final String lastModifiedBy;
+  final List<String> keywords;
+  final int revisions;
+  final DocumentProperties? properties;
 }
 
 class BasicParserOptions extends ParserOptions {
@@ -52,6 +80,7 @@ abstract class ParserOptions {
   final bool Function(String? hex)? checkColor;
   final Future<String?> Function(Uint8List bytes, String name)? onDetectImage;
   final ParseSpacingCallback? parseXmlSpacing;
+
   /// a way to build a custom size from Word
   /// to a know value for Quill Delta
   ///

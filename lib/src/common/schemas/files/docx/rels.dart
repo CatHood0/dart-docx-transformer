@@ -1,11 +1,21 @@
-import 'package:docx_transformer/src/common/namespaces.dart';
+import 'package:xml/xml.dart';
+
+import '../../../default/xml_defaults.dart';
+import '../../../namespaces.dart';
+import '../../common_node_keys/word_files_common.dart';
 
 /// Correspond to file _rels/.rels.xml
-String generateRelsXml() => '''
-    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-      <Relationship Id="rId3" Type="${namespaces['extendedProperties']}" Target="docProps/app.xml" />
-      <Relationship Id="rId2" Type="${namespaces['corePropertiesRelation']}" Target="docProps/core.xml" />
-      <Relationship Id="rId1" Type="${namespaces['officeDocumentRelation']}" Target="word/document.xml" />
-    </Relationships>
-''';
+XmlDocument generateRelsXml() => XmlDocument(
+      [
+        XmlDefaults.declaration,
+        XmlDefaults.relationships(
+          generateDefaultDocumentRelations: false,
+          children: <XmlElement>[
+            XmlDefaults.relation(rId: 'rId1', type: namespaces['extendedProperties']!, target: appFilePath),
+            XmlDefaults.relation(rId: 'rId2', type: namespaces['corePropertiesRelation']!, target: coreFilePath),
+            XmlDefaults.relation(rId: 'rId3', type: namespaces['officeDocumentRelation']!, target: documentFilePath),
+          ],
+        ),
+      ],
+    );
+

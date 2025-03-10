@@ -19,13 +19,15 @@ class DocumentProperties {
     required this.orientation,
     DocumentMargins? margins,
     List<String> keywords = const <String>[],
-    this.docStyles,
-  })  : standalone = 'yes',
+    DocumentStylesSheet? styles,
+  })  : docStyles = styles ?? DocumentStylesSheet.base(),
+        standalone = 'yes',
         keywords = keywords.join(','),
         encoding = 'UTF-8' {
     final bool isPortraitOrientation = orientation == defaultOrientation;
-    final double height =
-        !editorSettings.pageSize.height.isNegative ? editorSettings.pageSize.height : landscapeHeight;
+    final double height = !editorSettings.pageSize.height.isNegative
+        ? editorSettings.pageSize.height
+        : landscapeHeight;
     final double width =
         !editorSettings.pageSize.width.isNegative ? editorSettings.pageSize.width : landscapeWidth;
 
@@ -51,7 +53,7 @@ class DocumentProperties {
       editorSettings: EditorSettings.basic(),
       orientation: Orientation.portrait,
       keywords: const <String>[],
-      docStyles: null,
+      styles: null,
     );
   }
 
@@ -73,7 +75,7 @@ class DocumentProperties {
   final String standalone;
   final DateTime modifiedAt;
   final DateTime createdAt;
-  final DocumentStylesSheet? docStyles;
+  final DocumentStylesSheet docStyles;
   final EditorSettings editorSettings;
   final int revisions;
 

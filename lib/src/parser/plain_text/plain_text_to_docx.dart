@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:archive/archive_io.dart';
 import 'package:xml/xml.dart';
 import '../../../docx_transformer.dart';
 import '../../common/default/default_document_styles.dart';
+import '../../common/default/xml_defaults.dart';
 import '../../common/schemas/common_node_keys/word_files_common.dart';
 import '../../common/schemas/files/docx/content_types.dart';
 import '../../common/schemas/files/docx/core.dart';
@@ -34,136 +36,116 @@ class PlainTextToDocx extends Parser<String, Future<Uint8List?>, BasicParserOpti
           description: options.description,
           lastModifiedBy: options.lastModifiedBy,
           keywords: options.keywords,
-          styles: defaultDocumentStyles,
+          styles: DefaultDocumentStyles.kDefaultDocumentStyleSheet,
           revisions: options.revisions,
         );
 
-    final String docStr = _documentContentBuilder(data: data);
+    final List<XmlElement> contents = _documentContentBuilder(data: data);
+    final XmlDocument docNode = generateDocumentXml(defaultProperties, contents: contents);
 
-    final String content = generateDocumentXml(defaultProperties, docStr);
-    final XmlDocument docNode = XmlDocument.parse(content);
-
-    final EditorProperties editorProperties = defaultEditorProperties(content: data);
-
-    final ArchiveFile document = ArchiveFile.string('word/document.xml', docNode.toXmlString());
-    final ArchiveFile styles = ArchiveFile.string(
+    final ArchiveFile document = ArchiveFile.bytes(
+      'word/document.xml',
+      stringToBytes(
+        docNode.toXmlString(),
+      ),
+    );
+    final ArchiveFile styles = ArchiveFile.bytes(
       'word/styles.xml',
-      generateStylesXML(defaultProperties),
+      stringToBytes(generateStylesXML(defaultProperties).toXmlString()),
     );
 
-    final ArchiveFile core = ArchiveFile.string(
+    final ArchiveFile core = ArchiveFile.bytes(
       coreFilePath,
-      generateCoreXml(
-        defaultProperties,
-        editorProperties,
+      stringToBytes(
+        generateCoreXml(
+          defaultProperties,
+        ).toXmlString(),
       ),
     );
 
-    final ArchiveFile contentTypes = ArchiveFile.string(
+    final ArchiveFile contentTypes = ArchiveFile.bytes(
       contentTypesPath,
-      generateContentTypesXml(),
+      stringToBytes(
+        generateContentTypesXml().toXmlString(),
+      ),
     );
 
-    final ArchiveFile rels = ArchiveFile.string(
+    final ArchiveFile rels = ArchiveFile.bytes(
       relsFilePath,
-      generateRelsXml(),
+      stringToBytes(
+        generateRelsXml().toXmlString(),
+      ),
     );
 
-    final ArchiveFile fontTable = ArchiveFile.string(
+    final ArchiveFile fontTable = ArchiveFile.bytes(
       fontTableXmlFilePath,
-      generateFontTableXML(),
+      stringToBytes(
+        generateFontTableXML().toXmlString(),
+      ),
     );
 
-    final ArchiveFile documentRels = ArchiveFile.string(
+    final ArchiveFile documentRels = ArchiveFile.bytes(
       documentXmlRelsFilePath,
-      generateDocumentXmlRels(null),
+      stringToBytes(
+        generateDocumentXmlRels(null).toXmlString(),
+      ),
     );
 
-    final ArchiveFile numbering = ArchiveFile.string(
+    final ArchiveFile numbering = ArchiveFile.bytes(
       numberingXmlFilePath,
-      generateNumberingXMLTemplate(),
+      stringToBytes(
+        generateNumberingXMLTemplate().toXmlString(),
+      ),
     );
 
-    final ArchiveFile themes = ArchiveFile.string(
+    final ArchiveFile themes = ArchiveFile.bytes(
       themeXmlFilePath,
-      generateThemesXml(),
+      stringToBytes(
+        generateThemesXml(),
+      ),
     );
 
-    final ArchiveFile settings = ArchiveFile.string(
+    final ArchiveFile settings = ArchiveFile.bytes(
       settingsXmlFilePath,
-      generateSettingsXML(),
+      stringToBytes(
+        generateSettingsXML().toXmlString(),
+      ),
     );
 
-    final ArchiveFile webSettings = ArchiveFile.string(
+    final ArchiveFile webSettings = ArchiveFile.bytes(
       webSettingsXmlFilePath,
-      generateWebSettingsXML(),
+      stringToBytes(
+        generateWebSettingsXML().toXmlString(),
+      ),
     );
 
     archive
       ..add(contentTypes)
       ..add(rels)
       ..add(core)
+      ..add(document)
       ..add(styles)
       ..add(numbering)
       ..add(fontTable)
       ..add(documentRels)
-      ..add(document)
+      ..add(themes)
       ..add(settings)
-      ..add(webSettings)
-      ..add(themes);
+      ..add(webSettings);
 
     return encoder.encodeBytes(archive);
   }
 
-  String _documentContentBuilder({required String data}) {
-    final List<String> paragraphs = data.split('\n');
-    final StringBuffer buffer = StringBuffer();
-    for (final String pr in paragraphs) {
-      buffer.writeln(_nodeSectionBuilder('p', isClosure: false));
-      final List<String> lines = pr.split(RegExp(r'\s'));
-      for (int i = 0; i < lines.length; i++) {
-        final String textPart = lines.elementAt(i);
-        final bool isLast = lines.length - 1 == i;
-        final String runStart = _nodeSectionBuilder('r', isClosure: false);
-        final String content = _nodeBuilder('t', attributes: kDefaultPreserveWhitespaceMark, content: textPart);
-        final String extraPartContent =
-            isLast ? '' : _nodeBuilder('t', attributes: kDefaultPreserveWhitespaceMark, content: ' ');
-        final String runEnd = _nodeSectionBuilder('r', isClosure: true);
-        buffer.writeln('$runStart\n$content\n$runEnd');
-        if (!isLast) {
-          buffer.writeln('$runStart\n$extraPartContent\n$runEnd');
-        }
-      }
-      buffer.writeln(
-        _nodeSectionBuilder('p', isClosure: true),
+  List<XmlElement> _documentContentBuilder({required String data}) {
+    final List<String> lines = const LineSplitter().convert('\n');
+    final List<XmlElement> buffer = <XmlElement>[];
+    for (final String text in lines) {
+      buffer.add(
+        XmlDefaults.paragraphTag(
+          text,
+          extraChildren: XmlDefaults.paragraphStyles,
+        ),
       );
     }
-    return '$buffer';
-  }
-
-  String _nodeSectionBuilder(
-    String name, {
-    Map<String, dynamic> attributes = const <String, dynamic>{},
-    bool isClosure = false,
-    bool isAutoClosure = false,
-  }) {
-    final String attrs = attributes.isEmpty
-        ? ''
-        : attributes.entries
-            .map(
-              (MapEntry<String, dynamic> e) => '${e.key}="${e.value}"',
-            )
-            .join(' ');
-    return '''<${isClosure ? '/' : ''}w:$name$attrs${isAutoClosure ? ' /' : ''}>''';
-  }
-
-  String _nodeBuilder(
-    String name, {
-    Map<String, dynamic> attributes = const <String, dynamic>{},
-    String content = '',
-  }) {
-    return '''<w:$name${attributes.isEmpty ? '' : ' ${attributes.entries.map(
-          (MapEntry<String, dynamic> e) => '${e.key}="${e.value}"',
-        ).join(' ')}'}>$content</w:$name>''';
+    return buffer;
   }
 }

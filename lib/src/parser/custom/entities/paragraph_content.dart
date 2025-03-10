@@ -1,12 +1,13 @@
 import 'package:xml/xml.dart';
 
+import '../../../common/default/xml_defaults.dart';
 import '../../../common/styles.dart';
 import 'base/content.dart';
 import 'base/document_context.dart';
 import 'base/parent_content.dart';
 import 'base/simple_content.dart';
 
-class ParagraphContent extends ParentContent<SimpleContent> {
+class ParagraphContent extends ParentContent<Iterable<SimpleContent>> {
   ParagraphContent({
     required Iterable<SimpleContent> data,
     this.style,
@@ -24,6 +25,7 @@ class ParagraphContent extends ParentContent<SimpleContent> {
     final List<XmlAttribute> attrs = [...paragraphStyles.whereType<XmlAttribute>()];
     return runParent(
       attributes: attrs,
+      isSelfClosing: data.isNotEmpty,
       children: <XmlNode>[
         ...paragraphStyles.whereType<XmlElement>(),
         ...data.map(
@@ -35,26 +37,52 @@ class ParagraphContent extends ParentContent<SimpleContent> {
 
   @override
   List<XmlElement> buildXmlStyle({required DocumentContext context}) {
-    return [];
+    return style == null ? XmlDefaults.paragraphStyles : <XmlElement>[];
   }
 
   @override
   ParagraphContent get copy => ParagraphContent(data: data);
 
   @override
-  SimpleContent? visitElement(bool Function(Content element) shouldGetElement,
-      {bool visitChildrenIfNeeded = false}) {
+  SimpleContent? visitElement(
+    bool Function(Content element) shouldGetElement, {
+    bool visitChildrenIfNeeded = false,
+  }) {
     for (final element in data) {
       if (shouldGetElement(element)) {
         return element;
-      }
-    }
-    if (visitChildrenIfNeeded) {
-      for (final SimpleContent element in data) {
-        final SimpleContent? foundedEl = element.visitElement(shouldGetElement) as SimpleContent?;
-        if (foundedEl != null) return foundedEl;
+      } else if (visitChildrenIfNeeded) {
+        final SimpleContent? foundedEl = element.visitElement(
+          shouldGetElement,
+        );
+        if (foundedEl != null) {
+          return foundedEl;
+        }
       }
     }
     return null;
+  }
+
+  @override
+  List<SimpleContent>? visitAllElement(
+    bool Function(Content element) shouldGetElement, {
+    bool visitChildrenIfNeeded = true,
+  }) {
+    if (data.isEmpty) return <SimpleContent>[];
+    final List<SimpleContent> elements = <SimpleContent>[];
+    for (final SimpleContent element in data) {
+      if (shouldGetElement(element)) {
+        elements.add(element);
+      } else if (visitChildrenIfNeeded) {
+        final List<SimpleContent>? foundedEl = element.visitAllElement(
+          shouldGetElement,
+          visitChildrenIfNeeded: true,
+        );
+        if (foundedEl != null) {
+          elements.addAll(foundedEl);
+        }
+      }
+    }
+    return elements;
   }
 }

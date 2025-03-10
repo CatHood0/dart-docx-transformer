@@ -1,8 +1,10 @@
 import 'package:xml/xml.dart';
+import '../../../constants.dart';
+import '../mixins/applicable_attribute_mixin.dart';
 import '../utils/constants.dart';
 import 'attribute.dart';
 
-class BackgroundTextColorAttribute extends NodeAttribute<String?> {
+class BackgroundTextColorAttribute extends NodeAttribute<String?> implements ApplicableAttributeMixin {
   BackgroundTextColorAttribute(String? value)
       : super(
           key: 'background-color',
@@ -21,13 +23,13 @@ class BackgroundTextColorAttribute extends NodeAttribute<String?> {
     return XmlElement.tag(
       'w:shd',
       attributes: [
-        XmlAttribute(XmlName.fromString('w:val'), value ?? noColor),
+        XmlAttribute(XmlName.fromString('w:fill'), value ?? noColor),
       ],
     );
   }
 }
 
-class ForegroundTextColorAttribute extends NodeAttribute<String?> {
+class ForegroundTextColorAttribute extends NodeAttribute<String?> implements ApplicableAttributeMixin {
   ForegroundTextColorAttribute(String? value)
       : super(
           key: 'text-color',
@@ -52,7 +54,7 @@ class ForegroundTextColorAttribute extends NodeAttribute<String?> {
   }
 }
 
-class FontSizeAttribute extends NodeAttribute<int?> {
+class FontSizeAttribute extends NodeAttribute<int?> implements ApplicableAttributeMixin {
   FontSizeAttribute(int? size)
       : super(
           key: 'font-size',
@@ -80,7 +82,7 @@ class FontSizeAttribute extends NodeAttribute<int?> {
   }
 }
 
-class FontFamilyAttribute extends NodeAttribute<String?> {
+class FontFamilyAttribute extends NodeAttribute<String?> implements ApplicableAttributeMixin {
   FontFamilyAttribute(String? font)
       : super(
           key: 'font-family',
@@ -109,7 +111,7 @@ class FontFamilyAttribute extends NodeAttribute<String?> {
   }
 }
 
-class StrikeAttribute extends NodeAttribute<bool> {
+class StrikeAttribute extends NodeAttribute<bool> implements ApplicableAttributeMixin {
   StrikeAttribute()
       : super(
           key: 'strike',
@@ -128,7 +130,7 @@ class StrikeAttribute extends NodeAttribute<bool> {
   }
 }
 
-class UnderlineAttribute extends NodeAttribute<bool> {
+class UnderlineAttribute extends NodeAttribute<bool> implements ApplicableAttributeMixin {
   UnderlineAttribute()
       : super(
           key: 'underline',
@@ -147,7 +149,7 @@ class UnderlineAttribute extends NodeAttribute<bool> {
   }
 }
 
-class ItalicAttribute extends NodeAttribute<bool> {
+class ItalicAttribute extends NodeAttribute<bool> implements ApplicableAttributeMixin {
   ItalicAttribute()
       : super(
           key: 'italic',
@@ -168,7 +170,11 @@ class ItalicAttribute extends NodeAttribute<bool> {
 
 class LinkAttribute extends NodeAttribute<String> {
   LinkAttribute(String link)
-      : super(
+      : assert(
+          linkDetectorMatcher.hasMatch(link),
+          'Cannot create LinkAttribute when the link="$link" is not valid',
+        ),
+        super(
           key: 'href',
           value: link,
           scope: Scope.portion,
@@ -185,7 +191,7 @@ class LinkAttribute extends NodeAttribute<String> {
   }
 }
 
-class BoldAttribute extends NodeAttribute<bool> {
+class BoldAttribute extends NodeAttribute<bool> implements ApplicableAttributeMixin {
   BoldAttribute()
       : super(
           key: 'bold',
@@ -204,7 +210,7 @@ class BoldAttribute extends NodeAttribute<bool> {
   }
 }
 
-class ScriptAttribute extends NodeAttribute<String> {
+class ScriptAttribute extends NodeAttribute<String> implements ApplicableAttributeMixin {
   ScriptAttribute(String script)
       : super(
           key: 'script',

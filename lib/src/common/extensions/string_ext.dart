@@ -1,3 +1,5 @@
+import 'package:xml/xml.dart';
+
 extension AlignString on String {
   /// Compare if the string is equals to [compare] String passed
   ///
@@ -7,8 +9,17 @@ extension AlignString on String {
     return this == compare ? replacement : this;
   }
 
+  String removeAllWhitespaces(){
+    return replaceAll(RegExp(r'\s+'), '');
+  }
+
   String toFixedAlignStr() {
     return toFixedString(replacement: 'justify', compare: 'both');
+  }
+
+  /// Convert this string to a XmlName
+  XmlName toName() {
+    return XmlName.fromString(this).copy();
   }
 
   bool get isAlignStr =>

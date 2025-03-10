@@ -308,7 +308,7 @@ class DeltaFromDocxParser extends Parser<Uint8List, Future<Delta?>?, DeltaParser
             final Uint8List bytes = rawMedia[effectivePath] as Uint8List;
             // transform the image to something that can be inserted in a Delta
             final String? url =
-                await options.onDetectImage!(bytes, imagePath.replaceFirst(imageNamePattern, ''));
+                await options.onDetectImage!(bytes, imagePath.replaceFirst(RegExp(r'.*\/'), ''));
             if (url != null) {
               assert(url.isNotEmpty, 'url/path of the image(path: $effectivePath) cannot be empty');
               delta.insert(<String, Object>{'image': url});

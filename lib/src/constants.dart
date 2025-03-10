@@ -1,7 +1,62 @@
+import 'common/default/default_document_styles.dart';
 import 'common/document/document_margins.dart';
 import 'common/document/document_properties.dart';
 import 'common/document/document_styles.dart';
 import 'common/document/editor_properties.dart';
+
+/// These are the default supported image file extensions in Word
+///
+/// _Some of the extensions are not fully supported on older versions of Word editor_
+final List<String> kDefaultAcceptedFileExtensions = List.unmodifiable([
+  ...<String>['jpg', 'jpeg'],
+  ...<String>['tiff', 'tif'],
+  'png',
+  'bmp',
+  'gif',
+  'svg',
+  'emf',
+  'wmf',
+]);
+
+/// This is a links pattern that helps us to validate if the input
+/// has a hyperlink correct
+///
+/// ## Supports links like:
+///
+/// * http://www.google.com
+/// * https://www.google.com
+/// * www.google.com
+/// * google.com
+/// * http://localhost:8080
+/// * https://sub.page.com/route/page.html
+/// * https://page.com/search?q=regex
+///
+/// ## No valid links:
+///
+/// * google (falta el dominio y la extensión).
+/// * http:// (falta el dominio).
+/// * www.google (falta la extensión del dominio).
+/// * ftp://dominio.com (este regex no soporta otros protocolos como FTP).
+final RegExp linkDetectorMatcher = RegExp(
+  r'^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$',
+  multiLine: false,
+);
+
+/// This is the twip value used by word to calculate some values
+///
+/// By default, to get the real value from word we need to make a operation like:
+///
+/// 345600 / 1440 => 240
+///
+/// and, when we will parse a value to word
+/// we need to multiply it to pass the format that we expect
+///
+/// 240 * 1440 => 345600
+const int kDefaultTwipsValue = 1440;
+
+num computeTwip(num value, {bool toWord = true}) {
+  return toWord ? value * kDefaultTwipsValue : value / kDefaultTwipsValue;
+}
 
 const String defaultFont = 'Times New Roman';
 const int defaultFontSize = 22;
@@ -26,8 +81,8 @@ const Orientation defaultOrientation = Orientation.portrait;
 /// lineSpacing = n / 240
 ///```
 const double kDefaultSpacing1 = 240;
-const double kDefaultSpacing15 = 360;
-const double kDefaultSpacing2 = 400;
+//const double kDefaultSpacing15 = 360;
+//const double kDefaultSpacing2 = 400;
 const double landscapeHeight = 12240;
 const DocumentMargins landscapeMargins = DocumentMargins(
   top: 1800,
@@ -50,8 +105,6 @@ const DocumentMargins portraitMargins = DocumentMargins(
   gutter: 0,
 );
 
-final RegExp imageNamePattern = RegExp(r'.*\/');
-
 DocumentProperties defaultDocumentProperties({
   String title = '',
   String owner = '',
@@ -71,7 +124,7 @@ DocumentProperties defaultDocumentProperties({
       modifiedAt: DateTime.now(),
       createdAt: DateTime.now(),
       keywords: keywords,
-      docStyles: styles,
+      styles: styles ?? DefaultDocumentStyles.kDefaultDocumentStyleSheet,
       revisions: 1,
       orientation: defaultOrientation,
       editorSettings: EditorSettings.basic(
@@ -86,7 +139,6 @@ EditorProperties defaultEditorProperties({
   required String content,
 }) =>
     EditorProperties(
-      numberOfRevisions: 1,
       paragraphs: content.countParagraphs,
       lines: content.isEmpty ? 0 : content.countLines,
       characters: content.charsLength,
